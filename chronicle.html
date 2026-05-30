@@ -1,0 +1,2338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>编年史</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+      font-size: 28px;
+    }
+
+    .chronicle-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .chronicle-table th {
+      background: #34495e;
+      color: white;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .chronicle-table td {
+      padding: 12px;
+      border-bottom: 1px solid #ecf0f1;
+    }
+
+    .year-row {
+      background: #ecf0f1;
+      cursor: pointer;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .year-row:hover {
+      background: #d5dbdb;
+    }
+
+    .year-row .toggle-icon {
+      display: inline-block;
+      width: 20px;
+      margin-right: 10px;
+      transition: transform 0.2s;
+    }
+
+    .year-row.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+
+    .month-row {
+      background: #f8f9fa;
+      cursor: pointer;
+      padding-left: 40px !important;
+      color: #7f8c8d;
+    }
+
+    .month-row:hover {
+      background: #ecf0f1;
+    }
+
+    .month-row .toggle-icon {
+      display: inline-block;
+      width: 20px;
+      margin-right: 10px;
+      transition: transform 0.2s;
+    }
+
+    .month-row.collapsed .toggle-icon {
+      transform: rotate(-90deg);
+    }
+
+    .event-row {
+      padding-left: 80px !important;
+    }
+
+    .event-row .location {
+      color: #3498db;
+      font-weight: 500;
+    }
+
+    .event-row .event {
+      color: #2c3e50;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #95a5a6;
+      font-style: italic;
+    }
+
+    /* 搜索框样式 */
+    .search-box {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-box input,
+    .search-box select {
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .search-box input:focus,
+    .search-box select:focus {
+      border-color: #3498db;
+    }
+
+    .search-box input[type="text"] {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .search-box select {
+      min-width: 120px;
+    }
+
+    .search-box button {
+      padding: 10px 20px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .search-box button:hover {
+      background: #2980b9;
+    }
+
+    .search-box button.reset {
+      background: #95a5a6;
+    }
+
+    .search-box button.reset:hover {
+      background: #7f8c8d;
+    }
+
+    .search-info {
+      margin-bottom: 15px;
+      color: #7f8c8d;
+      font-size: 14px;
+    }
+
+    /* 水印样式 */
+    .watermark {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      overflow: hidden;
+    }
+
+    .watermark-text {
+      position: absolute;
+      font-size: 20px;
+      color: rgba(0, 0, 0, 0.05);
+      transform: rotate(-30deg);
+      white-space: nowrap;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- 水印 -->
+  <div class="watermark" id="watermark"></div>
+  <div class="container">
+    <h1>编年史</h1>
+
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="输入年份或关键词搜索...">
+      <select id="yearSelect">
+        <option value="">选择年份</option>
+      </select>
+      <select id="monthSelect">
+        <option value="">选择月份</option>
+      </select>
+      <button onclick="searchChronicle()">搜索</button>
+      <button class="reset" onclick="resetSearch()">重置</button>
+    </div>
+    <div class="search-info" id="searchInfo"></div>
+
+    <table class="chronicle-table" id="chronicle">
+      <thead>
+        <tr>
+          <th>时间</th>
+          <th>地点</th>
+          <th>事件</th>
+        </tr>
+      </thead>
+      <tbody id="chronicle-body">
+        <tr class="year-row" data-year="1870">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1870 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1870" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1870" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">吕池福出生于济南别熙乡</td>
+        </tr>
+        <tr class="event-row" data-year="1870" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">韩海</td>
+          <td class="event">韩海宽出生</td>
+        </tr>
+        <tr class="year-row" data-year="1871">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1871 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1871" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1871" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">林雅珠出生于长沙，孟深与林雅珠曾经是一对恋人。</td>
+        </tr>
+        <tr class="year-row" data-year="1874">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1874 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1874" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1874" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">巴府山</td>
+          <td class="event">巴府山接任“祓仆”</td>
+        </tr>
+        <tr class="year-row" data-year="1879">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1879 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1879" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1879" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">陈良雨（田吉雾朗）出生</td>
+        </tr>
+        <tr class="year-row" data-year="1881">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1881 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1881" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1881" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">Mercy和柯汉生的儿子柯卫廉（Williams Cloud）出生</td>
+        </tr>
+        <tr class="year-row" data-year="1885">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1885 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1885" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1885" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">葛继先的长女葛月曼出生。</td>
+        </tr>
+        <tr class="year-row" data-year="1886">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1886 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1886" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1886" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">年觉扬和林氏的私生女年素梅出生</td>
+        </tr>
+        <tr class="event-row" data-year="1886" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">年觉扬和别氏的儿子年自卓出生。</td>
+        </tr>
+        <tr class="event-row" data-year="1886" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">韩海宽入赘伊藤家</td>
+          <td class="event">韩海宽入赘伊藤家，改名为伊藤宽</td>
+        </tr>
+        <tr class="year-row" data-year="1887">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1887 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1887" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1887" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">熙勤兼和林氏的儿子熙扬隆出生</td>
+        </tr>
+        <tr class="event-row" data-year="1887" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">年觉扬和熙勤兼的妹妹的私生子年良真出生。</td>
+        </tr>
+        <tr class="year-row" data-year="1888">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1888 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1888" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1888" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">跃洋出生于青岛</td>
+          <td class="event">于跃洋出生于青岛</td>
+        </tr>
+        <tr class="year-row" data-year="1889">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1889 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1889" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1889" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">“鱼皇”顾璋赞和陈氏的儿子顾青峰出生</td>
+        </tr>
+        <tr class="event-row" data-year="1889" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">罗亨理继承远亨罗氏。</td>
+        </tr>
+        <tr class="event-row" data-year="1889" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">罗亨理家</td>
+          <td class="event">应娇娇被害后，陶山德在罗亨理家偶遇黄苏玫（黄余振的妹妹，此时是罗亨理的妻子），两人相互吸引，后私奔回武汉。</td>
+        </tr>
+        <tr class="event-row" data-year="1889" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">陶山</td>
+          <td class="event">1890 陶山德娶黄苏玫，后生下两个女儿陶若晴、小霁（白裙太太）。</td>
+        </tr>
+        <tr class="year-row" data-year="1892">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1892 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1892" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1892" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">江南黄芪庄</td>
+          <td class="event">李子材（嘉善堂老板、岳古和吴百安的同学，就读于江南黄芪庄）的儿子李骆明出生</td>
+        </tr>
+        <tr class="event-row" data-year="1892" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">岳古与林雅珠的儿子岳客沙出生</td>
+        </tr>
+        <tr class="event-row" data-year="1892" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">岳古组建社团，杜贵成和吴百安加入</td>
+        </tr>
+        <tr class="event-row" data-year="1892" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">天津万国擂台打败秋山</td>
+          <td class="event">夏仲鹏在天津万国擂台打败秋山佐满，被日本人嫉恨。北洋水师最年轻的舰长唐茂光向朝廷申请奖励其一块黄金奖牌。</td>
+        </tr>
+        <tr class="event-row" data-year="1892" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">夏伯龙代表夏家拳馆</td>
+          <td class="event">“南拳北掌”在洛阳登封比武，夏伯龙代表夏家拳馆前往，“四象掌”大师兄被日本人用“山魈散”下毒毒死在登封。夏三虎与“四象掌”小师弟发生私斗，两家结怨。钱山威和胡关强曾代表“泰华刀”参加比武。</td>
+        </tr>
+        <tr class="event-row" data-year="1892" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">太湖</td>
+          <td class="event">顾琏赡的儿子顾楚梦出生于太湖畔的“望梦山庄”，祖籍广东，顾青峰是其族兄。</td>
+        </tr>
+        <tr class="event-row" data-year="1892" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">巴府山</td>
+          <td class="event">巴府山从“袚赐娅”迁祖坟到“巴康寨”，出现了去了十个人回来九个人的事故。</td>
+        </tr>
+        <tr class="year-row" data-year="1893">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1893 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1893" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1893" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">韩山</td>
+          <td class="event">农历三月 韩山伟和小穗的儿子武史出生</td>
+        </tr>
+        <tr class="event-row" data-year="1893" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">吕池福和王玉岫（张寡妇）的双胞胎女儿泉和苦妮儿出生</td>
+        </tr>
+        <tr class="event-row" data-year="1893" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">石泰恒和田宁淑的女儿瑞容出生</td>
+        </tr>
+        <tr class="event-row" data-year="1893" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">袁秋镜和唐茂光的女儿唐莫离出生</td>
+        </tr>
+        <tr class="event-row" data-year="1893" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">冯双骥回到山</td>
+          <td class="event">冯双骥回到山西，投奔赵万雷成为管家</td>
+        </tr>
+        <tr class="year-row" data-year="1894">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1894 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1894" data-month="1">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1894" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">夏伯龙的女儿夏叔娥出生</td>
+        </tr>
+        <tr class="event-row" data-year="1894" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">蒋伯驹和平氏的女儿平佳妹出生</td>
+        </tr>
+        <tr class="event-row" data-year="1894" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location"></td>
+          <td class="event">岳古被孟深聘为私人医生，离开社团，杜贵成为社团负责人</td>
+        </tr>
+        <tr class="event-row" data-year="1894" data-month="1" data-day="1">
+          <td>1 月</td>
+          <td class="location">上海法蓝庄</td>
+          <td class="event">孟深从长沙回到上海法蓝庄居住。</td>
+        </tr>
+        <tr class="month-row" data-year="1894" data-month="12">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            12 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1894" data-month="12" data-day="1">
+          <td>12 月</td>
+          <td class="location"></td>
+          <td class="event">孟深和杨澄澄的女儿陈均梦出生（此时杨澄澄已嫁给陈轻梧）</td>
+        </tr>
+        <tr class="event-row" data-year="1894" data-month="12" data-day="1">
+          <td>12 月</td>
+          <td class="location"></td>
+          <td class="event">二十年一次的“袚赐娅”祭祀又开始了，这次的祀女是丰又唯。巴傩沼利用阿米的死偷梁换柱，拜托彭须藏把爱人丰又唯送到武汉，托付给药铺老板黄余振。</td>
+        </tr>
+        <tr class="event-row" data-year="1894" data-month="12" data-day="1">
+          <td>12 月</td>
+          <td class="location"></td>
+          <td class="event">年末，丰又唯生下和巴傩沼的女儿，为黄昭然同母异父的姐姐。</td>
+        </tr>
+        <tr class="year-row" data-year="1895">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1895 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1895" data-month="5">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            5 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location"></td>
+          <td class="event">赵万雷带着冯双骥在天津待了三个月</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location"></td>
+          <td class="event">岳古陪同孟深前往天津</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location"></td>
+          <td class="event">闰五月 因甲午战争战败，赵万雷 唐茂光 虞北辰 任雪 孟深五人因爱国的共同理想结社于天津</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location">赵万雷让冯从家</td>
+          <td class="event">赵万雷让冯从家里拿了25万两白银资助孟深的研究</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location">唐茂光变卖家</td>
+          <td class="event">六月 因朝廷克扣阵亡将士抚恤金，唐茂光变卖家产连同朋友帮忙凑齐50万两白银给甲午战争阵亡将士家属，之后辞官归隐江南，以笔名袁野客给申报写稿。</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location">法蓝庄</td>
+          <td class="event">孟深从天津回来后开始秘密在法蓝庄地下研究炸药</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location"></td>
+          <td class="event">虞北辰开始寻找原料，赵万雷提供资金，投建兵工厂</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location">罗明纱嫁给上海</td>
+          <td class="event">罗明纱嫁给上海“吉才药行”少爷谭仁昌，成为谭太太。</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location"></td>
+          <td class="event">陶烬恭和何云雪的女儿陶若芙出生</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location"></td>
+          <td class="event">陈轻梧和丫鬟桂华的私生子阿玉出生</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location"></td>
+          <td class="event">年底 田广顷和花彩珠的儿子柳阳关出生。</td>
+        </tr>
+        <tr class="month-row" data-year="1895" data-month="12">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            12 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="12" data-day="1">
+          <td>12 月</td>
+          <td class="location"></td>
+          <td class="event">夏伯龙与段和君的私生子段约同出生，段和君无法嫁给夏伯龙，便怀着孩子嫁给了白少恭“白头蛇”。李子俊求亲段和君，被退婚。</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="12" data-day="1">
+          <td>12 月</td>
+          <td class="location">李子俊和医馆</td>
+          <td class="event">李子俊和医馆少女姜艳美一夜风流，李子俊娶不了姜，姜跳河自杀，被唐婉枫所救。</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="12" data-day="1">
+          <td>12 月</td>
+          <td class="location"></td>
+          <td class="event">正月十五，已婚的田广顷送12颗大珍珠追求花彩珠，花彩珠珠胎暗结。田广顷还同时追求盈露。</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="12" data-day="1">
+          <td>12 月</td>
+          <td class="location">自己出事前拜托侄子秦逢山</td>
+          <td class="event">翻译田真的女儿琳珑在重庆出生，田真在自己出事前拜托侄子秦逢山将自己女儿给瓜尔佳盛安收养，成为盛安的第三个女儿。</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="12" data-day="1">
+          <td>12 月</td>
+          <td class="location"></td>
+          <td class="event">杜贵成和易莲芝的女儿易兰秦出生</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="12" data-day="1">
+          <td>12 月</td>
+          <td class="location"></td>
+          <td class="event">廖一乔和唐婉枫的女儿廖云凌在太原出生</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="12" data-day="1">
+          <td>12 月</td>
+          <td class="location">易温去江南黄岐庄</td>
+          <td class="event">易温去江南黄岐庄读书，经杜贵成介绍加入了岳古的社团</td>
+        </tr>
+        <tr class="event-row" data-year="1895" data-month="12" data-day="1">
+          <td>12 月</td>
+          <td class="location">上海</td>
+          <td class="event">岳古、吴百安、杜贵成、易温、宋笃诚作为【江南黄歧庄】的同学在上海成立药物研究组织，开始研究天仙子（莨菪）药物配方。</td>
+        </tr>
+        <tr class="year-row" data-year="1896">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1896 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1896" data-month="2">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            2 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1896" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">沙臣海</td>
+          <td class="event">沙臣海和孔氏的女儿沙霭芳出生</td>
+        </tr>
+        <tr class="event-row" data-year="1896" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">李子俊和姜艳美的女儿李侬秀出生</td>
+        </tr>
+        <tr class="event-row" data-year="1896" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">宋笃诚因导致闵嘉云怀孕被学校开除，社团解散</td>
+        </tr>
+        <tr class="event-row" data-year="1896" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">易莲芝和一双儿女被杜贵成带到法蓝庄</td>
+          <td class="event">易莲芝和一双儿女被杜贵成带到法蓝庄一起生活</td>
+        </tr>
+        <tr class="event-row" data-year="1896" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">八月十五 白延秋与盈露的双胞胎儿女程单同和程舞翩出生</td>
+        </tr>
+        <tr class="event-row" data-year="1896" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">显园</td>
+          <td class="event">农历九月 万玉蓉住在“显园”和白延秋偷情</td>
+        </tr>
+        <tr class="event-row" data-year="1896" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">廖一乔和唐婉枫的儿子廖雪寒出生</td>
+        </tr>
+        <tr class="event-row" data-year="1896" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">万金英和曲琼娘的女儿万蒲怀出生</td>
+        </tr>
+        <tr class="event-row" data-year="1896" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">丰又唯和黄余振的女儿黄昭然出生</td>
+        </tr>
+        <tr class="event-row" data-year="1896" data-month="2" data-day="24">
+          <td>02-24</td>
+          <td class="location"></td>
+          <td class="event">农历</td>
+        </tr>
+        <tr class="month-row" data-year="1896" data-month="5">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            5 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1896" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location"></td>
+          <td class="event">这是辛亥革命前清王朝最后的挣扎</td>
+        </tr>
+        <tr class="year-row" data-year="1897">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1897 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1897" data-month="2">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            2 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1897" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">虞西月与顾暮琴的女儿虞离雁出生</td>
+        </tr>
+        <tr class="event-row" data-year="1897" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">陈良雨入赘“田吉氏”，改名田吉雾朗</td>
+        </tr>
+        <tr class="event-row" data-year="1897" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">吴百安家</td>
+          <td class="event">年初 宋笃诚与闵嘉云的儿子宋言沪出生，后一直被寄养在吴百安家</td>
+        </tr>
+        <tr class="event-row" data-year="1897" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">年初 白延秋与花彩珠的女儿花彩云出生</td>
+        </tr>
+        <tr class="event-row" data-year="1897" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">夏天 苏冉仪与易温的女儿苏黛妮出生（珠颦）</td>
+        </tr>
+        <tr class="event-row" data-year="1897" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">初秋 白延秋与韩佳梅的儿子白雪生出生</td>
+        </tr>
+        <tr class="event-row" data-year="1897" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">九月二十六 白延秋和阿叶的儿子田继图出生</td>
+        </tr>
+        <tr class="event-row" data-year="1897" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">易温退学后来到长沙做生意，认识了闵嘉雪，闵嘉雪爱上易温。</td>
+        </tr>
+        <tr class="event-row" data-year="1897" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">霜降 苏冉仪到长沙找到易温，易温留下遗嘱把遗产全部给予女儿，后苏冉仪被闵氏姐妹伤害，最后被闵嘉云所杀。</td>
+        </tr>
+        <tr class="event-row" data-year="1897" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">白延秋和万玉蓉的儿子田绪园</td>
+          <td class="event">十月初二 白延秋和万玉蓉的儿子田绪园出生</td>
+        </tr>
+        <tr class="event-row" data-year="1897" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">穆夕婷出生于扬州，上面还有三个哥哥：穆伯宣、穆仲定、穆叔宜</td>
+        </tr>
+        <tr class="event-row" data-year="1897" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">古家庄</td>
+          <td class="event">6岁的顾楚梦被送去“古家庄”学武</td>
+        </tr>
+        <tr class="year-row" data-year="1898">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1898 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1898" data-month="2">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            2 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1898" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">伍艾菲双胞胎姐妹出生</td>
+        </tr>
+        <tr class="event-row" data-year="1898" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">易温因冉仪去世，非常痛苦，后与闵嘉云成婚</td>
+        </tr>
+        <tr class="event-row" data-year="1898" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">李子俊离开上海</td>
+          <td class="event">李子俊离开上海前往日本留学，夏三虎被夏仲鹏送去日本读书。李子俊被田吉秀一指使让夏三虎染上赌瘾输光钱财，成为黑狼会的走狗。</td>
+        </tr>
+        <tr class="event-row" data-year="1898" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">冯双骥的第二个女儿冯竹出生，张俊诗给其起雅名稚筠。</td>
+        </tr>
+        <tr class="event-row" data-year="1898" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">穆伯宣和沅绫的女儿穆蓝蕊出生，后被章方豪认作自己的女儿。</td>
+        </tr>
+        <tr class="event-row" data-year="1898" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">孤女Lucy与柯卫廉结婚，成为柯太太，改名露曦。</td>
+        </tr>
+        <tr class="year-row" data-year="1899">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1899 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1899" data-month="2">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            2 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1899" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">安季奚开始实施并蒂莲“YANA”计划，第一对双胞胎是自己的侄子，取名【安梧】，第二对双胞胎是自己强奸张氏兄弟的妹妹生下的孩子，取名【吾特】。</td>
+        </tr>
+        <tr class="event-row" data-year="1899" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">雾晓后来被柯汉生送到孤儿院</td>
+          <td class="event">露曦因为救丈夫被火烧伤，Mecry因为救儿子也被烧伤。后露曦生下女儿雾晓。雾晓后来被柯汉生送到孤儿院抚养。</td>
+        </tr>
+        <tr class="event-row" data-year="1899" data-month="2" data-day="6">
+          <td>02-06</td>
+          <td class="location">张氏兄弟的妹妹被送入上海精神病院</td>
+          <td class="event">因失去孩子，张氏兄弟的妹妹被送入上海精神病院，成为“6号病人”</td>
+        </tr>
+        <tr class="year-row" data-year="1900">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1900 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1900" data-month="2">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            2 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">北京城</td>
+          <td class="event">庚子事变 北京城被八国联军攻破 任仲远救下邢石孙（绝崖雕），后带着任雪和虞君鸿去太原廖家避难，一家三口团聚。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">安季奚从人贩子手上买下两对双胞胎，分别是睿司（第三双）和尔芙（第四双）。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">上海</td>
+          <td class="event">田吉秀一带田吉雾朗从日本回到上海，夏三虎因欠债也被田吉秀一带回国，成为日本人的掮客。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">上海法蓝庄</td>
+          <td class="event">唐茂光带着女儿唐莫离从杭州前往上海法蓝庄帮助孟深改良军械，在路过百里村时帮助村民抵御土匪，并送了一把特质弹夹手枪给姚长寿，后姚长寿传给其长子姚孟仁。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">在此期间，唐莫离与孟清淮相识相爱，莫离称孟清淮为“爱哭的少爷”，帮其修好了锡制士兵玩具。孟清淮偷出父亲的珍藏——一对法蓝黄铜双壶中的一只作为定情信物送给唐莫离。唐莫离回赠“不弃”风铃。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">当时法蓝庄</td>
+          <td class="event">当时法蓝庄里还有易楚安和易兰秦、岳客沙。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">百里村</td>
+          <td class="event">虞北辰找到萤石，带着儿子虞君鸿去法蓝庄帮助孟深进行研究，孟深让杜辉信将原材料收藏在百里村。虞君鸿在百里村认识姚仲义并成为好友。姚长寿（负责百里村）和陈轻梧（负责苏州商铺）觊觎孟深的家产，想要拿到宝藏（他们并不知道孟深藏的是什么），持有地图的方乘山因此被姚长寿和陈轻梧杀害。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">老管家</td>
+          <td class="event">老管家杜辉信（杜贵成的父亲）因为爆炸实验意外去世，唐茂光因NX炸药威力过于巨大而与孟深产生分歧，两人最终分道扬镳。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">上海</td>
+          <td class="event">立秋 孟深看到岳古和曾经的爱人林雅珠带着孩子离开一家三口很幸福，非常生气。岳古离开孟家，前往上海成立“岳氏药材公司”，改名为岳东汶。蒋嵩接替岳古成为孟深的私人医生。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">岳古后仍时常被请去孟家</td>
+          <td class="event">岳古后仍时常被请去孟家出诊，带着岳克沙前去，岳克沙逐渐爱上唐莫离。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">夏三虎因被黑狼会收买为日本人办事，他通过杜贵成购买炸药配方，杜贵成令自己的儿子楚安偷了孟深的炸药配方卖给黑狼会。杜贵成还介绍吴百安与黑狼会相识，吴百安为了研究经费卖“虫杀灵”给黑狼会和夏三虎（并不知道他们用来杀人）</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">夏家拳馆</td>
+          <td class="event">夏伯龙被夏三虎用虫杀灵毒死，夏叔娥因亲眼见到父亲死亡受到刺激，患上精神分裂。夏三虎贼喊捉贼，诬陷来看诊的医生李子材医疗事故，打伤李子材。冬天，李子材伤重死亡。夏仲鹏后被田吉秀一打伤。夏家拳馆彻底沦为日本人的傀儡。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">田吉秀一找到郭望山策划了泽州府</td>
+          <td class="event">初冬 田吉秀一找到郭望山策划了泽州府爆炸案，赵万雷和冯双骥的妻子均被炸死，炸弹配方来源于孟深，为黑狼会试验炸药威力导致。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">顾楚梦从古家庄</td>
+          <td class="event">顾楚梦从古家庄被接回江南。</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">与时家</td>
+          <td class="event">年觉扬开始化名“大盗王两”与时家兄弟（时成达、时景帆）当强盗</td>
+        </tr>
+        <tr class="event-row" data-year="1900" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">她的大女儿被送到孤儿院</td>
+          <td class="event">丰又唯被逼投水自尽，她的大女儿被送到孤儿院。</td>
+        </tr>
+        <tr class="year-row" data-year="1901">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1901 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1901" data-month="2">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            2 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">赵洛意和孟清淮两家</td>
+          <td class="event">杜贵成接赵万雷见孟深，赵洛意和孟清淮两家定下娃娃亲。孟深发现其中一只法蓝瓶和配方失踪。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">雾mist夜总会开张，陈良雨（田吉雾朗）出任总经理。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">吴百安加入岳式药材公司，并持续偷资料继续自己的研究。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">安季奚买下第5对双胞胎，起名伍艾菲。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">确认泽州府</td>
+          <td class="event">农历二月 孟深让岳古调查爆炸案，确认泽州府爆炸案是源自于自己的炸药配方。迁怒于杜贵成，杜贵成因为父亲的死刺伤孟深，被虞北辰送到警局。当时在场的有陈轻梧、杜贵成、蒋嵩、孟如静、冯双骥、虞北辰等人。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">杜贵成留下妻子易莲芝和一双儿女（楚安和兰秦），后两人改母姓。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">孟深最终被觊觎孟家家</td>
+          <td class="event">孟深最终被觊觎孟家家产的陈轻梧指使侄子陈奇舟所杀，孟清淮摔下山崖失去记忆，被吴百安救下来并收养改名【吴笑】。法蓝庄从此废弃。陈轻梧接管“法朗商行”，蒋嵩成为其私人医生。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">认识了葛家</td>
+          <td class="event">张俊诗给葛月萝治伤，认识了葛家姐妹，并与葛月曼坠入爱河。二人后私奔至泽州府。葛月曼改名冯月曼，偷走了家里的油画“紫藤夫人”卖给了赵万雷。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">上海给孤儿院</td>
+          <td class="event">结婚前张俊诗带着月曼曾经在上海给孤儿院的孩子出过义诊。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">沙臣海</td>
+          <td class="event">农历七月 广州，瓜尔佳泰嵩差点被林轩宏等人刺杀，事情败露后，沙臣海抓捕了林轩宏、徐粤彩的父母和章励恭。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">古家庄</td>
+          <td class="event">七月三十日后 虞西月先帮助徐粤彩从广州逃跑北上，安置在古家庄。后又帮助林轩宏化名“方胜元”送往古家庄，后与徐粤彩成亲。途中还救了逃出主人家的俊奴（谷负），也一起接往古家庄。谷负跟随林轩宏练了一手好枪法。虞西月随后逃亡。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">虞西月从上海</td>
+          <td class="event">年底，虞西月从上海黑狼会里偷走三万两白银和孟深的NX炸药配方，因此被黑狼会搜捕。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">陶孝先初遇姐姐山</td>
+          <td class="event">陶孝先初遇姐姐山礼，对其有好感。</td>
+        </tr>
+        <tr class="event-row" data-year="1901" data-month="2" data-day="13">
+          <td>02-13</td>
+          <td class="location">杜后被送入上海闸北西精神病院</td>
+          <td class="event">杜贵成求助吴百安，吴给他使用了鸦片让其被张俊诗诊断为精神病脱罪，但却让杜染上了毒瘾，杜后被送入上海闸北西精神病院成为13号病人。1914年逃出。</td>
+        </tr>
+        <tr class="year-row" data-year="1902">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1902 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1902" data-month="2">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            2 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1902" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">一家</td>
+          <td class="event">初 虞西月因面临清廷的通缉和黑狼会的秘密搜捕，便把藏有炸药配方的银怀表藏在一家洋货店，同时把三万两白银寄存在陆庄，后潜逃至广州。</td>
+        </tr>
+        <tr class="event-row" data-year="1902" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">五月初五，端午节，年觉扬伙同时成达开始搞“死而复生”的把戏。</td>
+        </tr>
+        <tr class="event-row" data-year="1902" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">五月初六，素梅误以为熙励辛害死父亲，所以杀死了熙励辛。</td>
+        </tr>
+        <tr class="event-row" data-year="1902" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">此后，熙勤兼开始追查“大盗王两”。</td>
+        </tr>
+        <tr class="event-row" data-year="1902" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">陆庄</td>
+          <td class="event">立秋 顾暮琴死后，哥哥顾璋赞带着儿子顾青峰送虞离雁去北京寻找虞北辰，路过陆庄领取白银。遭遇陆庄被诬陷满门被吴显荣、吴二财、李仁山屠杀，只剩顾青峰和虞离雁死里逃生。</td>
+        </tr>
+        <tr class="event-row" data-year="1902" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">朋云居被孙崇圣拐卖到杭州大院</td>
+          <td class="event">立秋后，6岁的虞离雁在朋云居被孙崇圣拐卖到杭州大院，被改名璃烟，学习琵琶，后认识了同样被拐卖到大院学戏的白雪生和程单同，几人以师兄妹互称，程单同为二师兄，白雪生是小师弟，璃烟是小师妹。大师兄是？</td>
+        </tr>
+        <tr class="event-row" data-year="1902" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">顾青峰找寻璃烟未果，跟随虞北辰去往武昌，和姑父虞西月一起生活。</td>
+        </tr>
+        <tr class="event-row" data-year="1902" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">白延秋夺得梨园</td>
+          <td class="event">白延秋夺得梨园状元。</td>
+        </tr>
+        <tr class="event-row" data-year="1902" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">白延秋受邀至显园</td>
+          <td class="event">八月二十 白延秋受邀至显园演出</td>
+        </tr>
+        <tr class="event-row" data-year="1902" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">杭州一所孤儿院</td>
+          <td class="event">九月十日 白延秋被火烧，后被阿叶所救，在杭州一所孤儿院打杂。盈露（假万玉蓉）把真的万玉蓉的尸体埋在了土丘里。</td>
+        </tr>
+        <tr class="year-row" data-year="1903">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1903 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1903" data-month="2">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            2 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1903" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">虞君鸿家</td>
+          <td class="event">姚仲义去京城读书，寄住在虞君鸿家。1911年分别。</td>
+        </tr>
+        <tr class="event-row" data-year="1903" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">德清县</td>
+          <td class="event">白雪生随母亲到达德清县“朋云居”时，被拐卖到杭州大院学戏。</td>
+        </tr>
+        <tr class="event-row" data-year="1903" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">年觉扬开始利用密道与时小节私会。</td>
+        </tr>
+        <tr class="event-row" data-year="1903" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">【永生学会】已经在长沙出现，丘XX此时为青铜会员。</td>
+        </tr>
+        <tr class="year-row" data-year="1904">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1904 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1904" data-month="2">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            2 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1904" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location">使其全家被抄家</td>
+          <td class="event">秦陇川诬陷了宋禹功，使其全家被抄家，成为秦大人后，开始接手围剿“大盗王两”的差事，其与“王两”合作搞明面上抓捕，暗地里勾结的勾当。</td>
+        </tr>
+        <tr class="event-row" data-year="1904" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">时成达因为女儿的事情杀死了年觉扬，但被秦陇川要挟，开始筹划第二次复活事件。</td>
+        </tr>
+        <tr class="event-row" data-year="1904" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">时景帆成为新一代的“大盗王两”，继续受秦陇川挟制，上交保护费。</td>
+        </tr>
+        <tr class="event-row" data-year="1904" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">七月十五 贺世珍开始成为夏夜杀人魔</td>
+        </tr>
+        <tr class="event-row" data-year="1904" data-month="2" data-day="1">
+          <td>2 月</td>
+          <td class="location"></td>
+          <td class="event">易楚安开始在《海潮早报》做实习记者</td>
+        </tr>
+        <tr class="month-row" data-year="1904" data-month="8">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            8 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1904" data-month="8" data-day="21">
+          <td>08-21</td>
+          <td class="location"></td>
+          <td class="event">吴百安的母亲包氏和兰秦被“亡命张”、钟岸柳“小马倌”、田硕力三人绑架</td>
+        </tr>
+        <tr class="event-row" data-year="1904" data-month="8" data-day="23">
+          <td>08-23</td>
+          <td class="location"></td>
+          <td class="event">吴百安的母亲为保护兰秦身亡</td>
+        </tr>
+        <tr class="month-row" data-year="1904" data-month="10">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            10 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1904" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">葛月曼和张俊诗成婚。</td>
+        </tr>
+        <tr class="event-row" data-year="1904" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">陶山</td>
+          <td class="event">陶山德知道了师父应动金倒卖古董的秘密，决心敲诈师父一笔。假装招魂，趁机敲诈应动金一大笔封口费。</td>
+        </tr>
+        <tr class="event-row" data-year="1904" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">因夺妻之恨罗亨理对陶山</td>
+          <td class="event">因夺妻之恨罗亨理对陶山德怀恨在心，同时因西卜博士搞“献祭”事情败露，罗亨理买通黄余振作伪证，诬陷陶山德入狱。</td>
+        </tr>
+        <tr class="event-row" data-year="1904" data-month="10" data-day="8">
+          <td>10-08</td>
+          <td class="location">卖掉云浮馆</td>
+          <td class="event">西卜博士匆匆离开武汉，卖掉云浮馆，被柯家接手。</td>
+        </tr>
+        <tr class="year-row" data-year="1905">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1905 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1905" data-month="10">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            10 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1905" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">二当家</td>
+          <td class="event">“大盗王两”（时景帆）、二当家诸葛之左（后化名祖吴）、三当家胡关强开始在河南、山东两地为寇。</td>
+        </tr>
+        <tr class="event-row" data-year="1905" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">陶山</td>
+          <td class="event">陶山德因罗亨理的贿赂被判流刑。</td>
+        </tr>
+        <tr class="year-row" data-year="1906">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1906 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1906" data-month="10">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            10 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1906" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">顾青峰认识了卖药茶的陶若晴，两人产生感情。</td>
+        </tr>
+        <tr class="event-row" data-year="1906" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">简修文和裴明珠定亲。</td>
+        </tr>
+        <tr class="event-row" data-year="1906" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">后成为四当家</td>
+          <td class="event">“小咬金”（后化名祖传文）加入“大盗王两”团伙，后成为四当家。</td>
+        </tr>
+        <tr class="event-row" data-year="1906" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">山义和应动金的儿子报生出生</td>
+        </tr>
+        <tr class="year-row" data-year="1907">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1907 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1907" data-month="10">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            10 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1907" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">被田吉雾朗收买的岑仲古诱拐唐婉枫和廖雪寒去了日本，田吉安排李子俊照顾二人。廖一乔被迫和黑狼会达成交易。</td>
+        </tr>
+        <tr class="event-row" data-year="1907" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">被送到海沙馆</td>
+          <td class="event">袁秋镜离世，唐莫离目睹母亲去世，被送到海沙馆接受治疗，认识了宋玉馨（宋玉书）。</td>
+        </tr>
+        <tr class="event-row" data-year="1907" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">真正的木县</td>
+          <td class="event">李独钟（真正的木县长）去武昌拜访虞西月，和顾青峰相识。</td>
+        </tr>
+        <tr class="event-row" data-year="1907" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">陶山</td>
+          <td class="event">陶山德刑满出狱，回黄家找妻子和女儿，被黄余振打发到了蔷薇馆。两人发生争吵，最终陶山德被罗千海所杀</td>
+        </tr>
+        <tr class="event-row" data-year="1907" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">上海</td>
+          <td class="event">陶孝先开始在上海登台表演催眠术。</td>
+        </tr>
+        <tr class="year-row" data-year="1908">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1908 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1908" data-month="10">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            10 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1908" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">廖雪寒思念家</td>
+          <td class="event">新年 廖雪寒思念家乡，和母亲唐婉枫发生争吵。</td>
+        </tr>
+        <tr class="event-row" data-year="1908" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">夏日 唐莫离病愈被送回父亲身边。</td>
+        </tr>
+        <tr class="event-row" data-year="1908" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">陶孝先得知父亲死讯，发誓找到真相。</td>
+        </tr>
+        <tr class="year-row" data-year="1909">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1909 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1909" data-month="10">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            10 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1909" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">廖雪寒被派去东京接受亲日教育，与李子俊喝酒道别。</td>
+        </tr>
+        <tr class="event-row" data-year="1909" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">13岁的虞离雁被人买下来送给裴知鹤，被其女儿裴明珠救下，离雁认裴知鹤为义女，也和明珠成为好友。</td>
+        </tr>
+        <tr class="year-row" data-year="1910">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1910 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1910" data-month="10">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            10 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1910" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">低价收购雷峡镇</td>
+          <td class="event">10月开始 受日本人的指使，廖一乔便委托樊动征当矿物代表，低价收购雷峡镇的煤矿。樊动征伙同方仁亭私卖煤矿并从中获利。</td>
+        </tr>
+        <tr class="event-row" data-year="1910" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">谷负跟随林轩宏前往武昌，准备起义。</td>
+        </tr>
+        <tr class="event-row" data-year="1910" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">顾楚梦受顾青峰的影响开始决定将心思放在学业上。</td>
+        </tr>
+        <tr class="event-row" data-year="1910" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">【永生学会】丘XX成为副科长。</td>
+        </tr>
+        <tr class="event-row" data-year="1910" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">侯动木找回报生收养，“仙仪”（山礼）开始给陶孝先当助手。</td>
+        </tr>
+        <tr class="year-row" data-year="1911">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1911 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1911" data-month="10">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            10 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1911" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">民国开始~</td>
+        </tr>
+        <tr class="event-row" data-year="1911" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">陈均梦嫁给姚家</td>
+          <td class="event">陈均梦嫁给姚家大少爷姚孟仁，回门那天听闻姚孟仁死讯，实际上姚孟仁化名徐伯清去参加了革命，姚长寿对外称其死亡，陈均梦因此守了三年活寡。姚仲义离京回家奔丧。</td>
+        </tr>
+        <tr class="event-row" data-year="1911" data-month="10" data-day="10">
+          <td>10-10</td>
+          <td class="location"></td>
+          <td class="event">，武昌起义爆发</td>
+        </tr>
+        <tr class="year-row" data-year="1912">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1912 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1912" data-month="7">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            7 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="7" data-day="1">
+          <td>7 月</td>
+          <td class="location">被送入圣格林医院</td>
+          <td class="event">7月，浦诚学因为“小诺号”实验失败缺氧昏迷，被送入圣格林医院。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="7" data-day="1">
+          <td>7 月</td>
+          <td class="location"></td>
+          <td class="event">7月，顾楚梦和穆夕婷成亲，搬去南京生活。</td>
+        </tr>
+        <tr class="month-row" data-year="1912" data-month="8">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            8 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="8" data-day="8">
+          <td>08-08</td>
+          <td class="location"></td>
+          <td class="event">（立秋），简修文因求亲不成毒杀裴知鹤。</td>
+        </tr>
+        <tr class="month-row" data-year="1912" data-month="9">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            9 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="9" data-day="1">
+          <td>9 月</td>
+          <td class="location">德清县当县</td>
+          <td class="event">9月下旬，顾楚梦到达德清县当县令，被周启帆假冒的木县长捷足先登。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="9" data-day="1">
+          <td>9 月</td>
+          <td class="location">廖雪寒去孤儿院</td>
+          <td class="event">初冬 廖雪寒去孤儿院视察，见到了侬秀并告知其身世，侬秀开始对雪寒有好感。为取信日本人，廖雪寒开始对远亨罗氏下手。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="9" data-day="8">
+          <td>09-08</td>
+          <td class="location">德清县</td>
+          <td class="event">，从北京前往德清县赴任的李德钟（木蜀童）被孙师爷毒杀。周启帆顶替了木县长的身份。</td>
+        </tr>
+        <tr class="month-row" data-year="1912" data-month="10">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            10 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">找到了时家</td>
+          <td class="event">熙勤兼根据线报（被祖吴和胡关强出卖）找到了时家兄弟，杀了时成达伪造成“大盗王两”上交秦大人，私自扣下时景帆严刑拷问财宝的下落，未果。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">泽州府</td>
+          <td class="event">新年 从日本归国后的廖雪寒先回太原，筹备分裂“廖氏”的事宜，后病倒在泽州府，被张俊诗和冯月曼（葛月曼）照顾。对冯月曼（茱丽）暗生情愫。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">初春 廖雪寒拜访岑仲古，准备复仇。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">廖氏商行表面贷款给远亨罗氏，实际不断破坏远亨罗氏的生意，为了抢夺其财产。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">孤儿院</td>
+          <td class="event">春末 廖雪寒投资上海的浦东一家孤儿院，因感念冯月曼，将孤儿院改名为“茱丽”孤儿院作为送给她的礼物。住在孤儿院的平佳妹暗暗喜欢上雪寒。雪寒结识红儿（谭仁昌和欣雅的私生女），决定借钱给红儿开始后面利用她。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">夏末 廖雪寒威胁姜艳美毒杀岑仲古。姜开始给岑持续下银粉。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">临时政府</td>
+          <td class="event">顾青峰的战友李独钟推荐顾楚梦进入“临时政府”，做了公职。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">于跃洋曾通过樊宗楚的“吞万”公司从“伊藤重工株式会社”订购马达马达机械。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">德清县</td>
+          <td class="event">顾青峰因得知虞离雁的音讯回到德清县，并没有遇到表妹，却认出吴二财，便一把火烧了朋云居客栈，同时杀死当年灭门仇人之一吴显荣。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">“吉才药行”老板谭仁昌结婚后仍追求过宜珠和欧阳夏美，他和岳古是对头，曾想要挖走吴百安。</td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="10" data-day="9">
+          <td>10-09</td>
+          <td class="location">醉阳楼</td>
+          <td class="event">（寒露）虞离雁来到醉阳楼打工赚盘缠想寻找亲人。</td>
+        </tr>
+        <tr class="month-row" data-year="1912" data-month="11">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            11 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1912" data-month="11" data-day="1">
+          <td>11 月</td>
+          <td class="location">跃洋加入伊藤重工山</td>
+          <td class="event">11月，于跃洋加入伊藤重工山东分公司。</td>
+        </tr>
+        <tr class="year-row" data-year="1913">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1913 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1913" data-month="5">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            5 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1913" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location">认秋山</td>
+          <td class="event">5月，盛安送琳珑去日本，认秋山佐满成为义女，实际是间谍+杀手。秋山樱（雪薇）在日本照顾琳珑。</td>
+        </tr>
+        <tr class="event-row" data-year="1913" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location">南京万家因辫子军入南京家</td>
+          <td class="event">南京万家因辫子军入南京家破人亡，万金英死亡。</td>
+        </tr>
+        <tr class="event-row" data-year="1913" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location">廖雪寒继续对岑家</td>
+          <td class="event">廖雪寒继续对岑家报复，蛊惑岑扬礼去夜总会，让其沾染恶习。岑扬礼在此认识了月蝶。</td>
+        </tr>
+        <tr class="event-row" data-year="1913" data-month="5" data-day="1">
+          <td>5 月</td>
+          <td class="location">后被田绪园</td>
+          <td class="event">白雪生被田广顷买下给万玉蓉唱戏，后被田绪园救出。后加入了“花彩班”。</td>
+        </tr>
+        <tr class="month-row" data-year="1913" data-month="10">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            10 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1913" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location"></td>
+          <td class="event">10月 西卜博士病故，被陶孝先安葬。谭尚致去参加了他的葬礼。</td>
+        </tr>
+        <tr class="event-row" data-year="1913" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">安徽广德县</td>
+          <td class="event">立冬前，安徽广德县，沙臣海被林轩宏带领谷负等反袁组织暗杀，卢恩健带兵围剿裂镜，用沙臣海的左轮手枪当场击毙林轩宏。</td>
+        </tr>
+        <tr class="event-row" data-year="1913" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">谷负逃回古家庄</td>
+          <td class="event">卢恩健凭此功劳升迁入京，成为稽查三处处长。谷负逃回古家庄，经古家庄主人担保，成为警探，但却因愧疚再也无法开枪。</td>
+        </tr>
+        <tr class="month-row" data-year="1913" data-month="11">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            11 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1913" data-month="11" data-day="1">
+          <td>11 月</td>
+          <td class="location"></td>
+          <td class="event">因嫉妒欧阳夏美，宜珠指使钟岸柳抢走易兰秦买的二手奢侈包，李骆明见义勇为赶走混混，与易兰秦相识。</td>
+        </tr>
+        <tr class="year-row" data-year="1914">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            1914 年
+          </td>
+        </tr>
+        <tr class="month-row" data-year="1914" data-month="4">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            4 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="4" data-day="1">
+          <td>4 月</td>
+          <td class="location"></td>
+          <td class="event">4月， 宋笃诚送儿子宋言沪前往长沙读书</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="4" data-day="1">
+          <td>4 月</td>
+          <td class="location">复泉楼</td>
+          <td class="event">清朝遗老在日本结社妄图光复大清，复泉楼成为据点。</td>
+        </tr>
+        <tr class="month-row" data-year="1914" data-month="7">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            7 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="1">
+          <td>7 月</td>
+          <td class="location"></td>
+          <td class="event">廖雪寒让岑执孝染上赌瘾，欠下一大笔钱。7月，完成让岑仲古众叛亲离的布局。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="1">
+          <td>7 月</td>
+          <td class="location">吴百安去精神病院</td>
+          <td class="event">吴百安去精神病院和杜贵成道别，杜贵成劝其不要重蹈自己的覆辙。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="1">
+          <td>7 月</td>
+          <td class="location">杜求其帮助自己逃离精神病院</td>
+          <td class="event">夏叔娥去看望杜贵成，杜求其帮助自己逃离精神病院，并请夏叔娥约吴百安去岳家和自己见面，吴百安未同意。杜贵成并未等到吴百安后，毒瘾犯了后偷了鸦片和钱离开。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="7">
+          <td>07-07</td>
+          <td class="location"></td>
+          <td class="event">，夏叔娥体内的舒望人格遭遇杀人魔贺世珍，打伤了他。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="18">
+          <td>07-18</td>
+          <td class="location">上海精神病院</td>
+          <td class="event">，唐莫离带着尔芙和夏叔娥一起前往“上海精神病院”做见习护士照顾病人。尔芙还和13号病人杜贵成打听过6号病人的情况。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="21">
+          <td>07-21</td>
+          <td class="location">上海精神病院</td>
+          <td class="event">尔芙再次前往“上海精神病院”与杜贵成交谈。后还与赵洛意相识。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="24">
+          <td>07-24</td>
+          <td class="location">后离开上海</td>
+          <td class="event">，吴百安偷资料时被岳克沙发现，他害怕被抓，准备把药剂卖给【黑狼会】后离开上海。卖货的5000两白银的五成定金与宋笃诚平分。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="25">
+          <td>07-25</td>
+          <td class="location">医院</td>
+          <td class="event">廖云凌离开太原前往杭州看望舅舅唐茂光，夏叔娥在医院做见习护士认识吴百安。夏叔娥前往杜家见到易莲芝说了一些事情。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="26">
+          <td>07-26</td>
+          <td class="location"></td>
+          <td class="event">李子俊（化名宇祖成木）向易兰秦借白银200两和阿明一起欺骗夏三虎。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="28">
+          <td>07-28</td>
+          <td class="location">上海</td>
+          <td class="event">易楚安拜访唐茂光，唐托其给唐莫离带西湖龙井。廖云凌离开杭州前往上海看望表姐唐莫离，途径苏州。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="29">
+          <td>07-29</td>
+          <td class="location">被夏叔娥约去法蓝庄</td>
+          <td class="event">吴百安被李骆明为父报仇所杀，被郭大抛尸江中。晚上，杜贵成遇到夏叔娥和唐莫离，被夏叔娥约去法蓝庄。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="30">
+          <td>07-30</td>
+          <td class="location">法蓝庄</td>
+          <td class="event">夏叔娥约了易楚安前往法蓝庄去见杜贵成，易楚安后来被孟清淮袭击。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="7" data-day="31">
+          <td>07-31</td>
+          <td class="location"></td>
+          <td class="event">和吴百安共同卖药的宋笃诚发现吴百安死亡躲了起来</td>
+        </tr>
+        <tr class="month-row" data-year="1914" data-month="8">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            8 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="1">
+          <td>8 月</td>
+          <td class="location">上海</td>
+          <td class="event">8月 琳珑正式改名为秋山琉璃，因得知盛安失踪，可能有风险，便前往上海寻找盛安失踪的真相。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="1">
+          <td>8 月</td>
+          <td class="location">醉阳楼</td>
+          <td class="event">顾青峰前往醉阳楼应聘厨师，化名“王丰州”，计划杀掉吴二财。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="2">
+          <td>08-02</td>
+          <td class="location"></td>
+          <td class="event">宋笃诚逃回长沙。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="10">
+          <td>08-10</td>
+          <td class="location">长沙麓下馆</td>
+          <td class="event">【14岳麓山下案】
+人物：宋言沪、黛妮、易莲芝、宋笃诚
+宋言沪、黛妮、易莲芝等人齐聚长沙麓下馆。宋笃诚、闵嘉云和易温被杀。案件结束后，宋言沪和苏黛妮分开，宋言沪回到上海处理宋笃诚的后事，还有四样未交货。他前往雾夜总会见田吉雾朗，田吉要求其寻找配方，此时的配方在易莲芝手中。黛妮处理完遗产事宜后决定去太原投奔来参加易温葬礼的张俊诗，去其私人诊所工作。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="11">
+          <td>08-11</td>
+          <td class="location">无锡站东</td>
+          <td class="event">【17待月弑杀案】
+人物：廖云凌、李子俊、侬秀、岑仲古、姜艳美
+廖云凌、李子俊、侬秀、贺世珍齐聚无锡岑家。岑仲古、姜艳美、岑扬礼被岑执孝所杀。案件结束后，廖云凌知道了是廖雪寒在背后谋划的一切。 8月12日 虞离雁北上寻亲，路过天津拜访裴明珠。 8月12日 珠宝行经理王子摩被杀</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="15">
+          <td>08-15</td>
+          <td class="location">东海海岛</td>
+          <td class="event">【08孽岛疑云案】
+人物：唐莫离、夏叔娥、有罗亨理、谭尚致
+唐莫离、夏叔娥等人齐聚东海海岛，贺世珍被宋玉书所杀。参加学术研讨会的还有罗亨理、谭尚致、安季奚。后罗亨理与廖雪寒在上海见面商谈欠款一事，下决心利用所谓炼金术许愿。在贺世珍死后，安季奚替其代课，并仍然研究贺留下的学术笔记。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="18">
+          <td>08-18</td>
+          <td class="location">山西泽州</td>
+          <td class="event">【01丹水山庄案】
+人物：赵洛意、虞君鸿、冯双骥、带着宋群、张安
+赵洛意、虞君鸿、冯双骥、郭望山齐聚山西泽州府丹水山庄。冯双骥被黑狼会威胁，毒杀了赵万雷。案件结束后，赵洛意因为家族已破产决定带着宋群、张安、赵秋儿前往汉口要回父亲通过【万信融】投资川汉铁路的一万两白银。冯双骥前往上海，【野狐悠谈】返场。 案件结束后，赵秋儿结局遇到了从太原来的廖雪寒，被其所救。二人返回太原。（分支结局）</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="18">
+          <td>08-18</td>
+          <td class="location">上海雾夜总会</td>
+          <td class="event">【06跌落的玫瑰案】
+人物：田吉雾朗、月蝶（小玲）、秋山琉璃（淄晶）
+田吉雾朗、月蝶（小玲）、秋山琉璃（淄晶）等人齐聚上海雾mist夜总会。前月蝶雪薇被田吉雾朗所杀。 8月18日，顾青峰路过宁波前往“蔷薇馆”求职。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="21">
+          <td>08-21</td>
+          <td class="location">苏州孟园</td>
+          <td class="event">【07珠帘异梦案】
+人物：孟如静、陈均梦、蒋嵩、林雅珠、陈奇舟
+孟如静、陈均梦、蒋嵩、林雅珠、陈奇舟等人齐聚苏州“孟园”，陈轻梧被亲生儿子阿玉毒杀。案件结束后，“法郎商行”再次易主，最终回到其真正的主人孟清淮手中。 8月21日，虞离雁的好友裴明珠被耿通贤所杀</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="24">
+          <td>08-24</td>
+          <td class="location">上海郊外法蓝庄（这个宅子可太不吉利了，短短20天又发生了命案）</td>
+          <td class="event">【23期须乃至案】
+人物：孟清淮、易兰秦、宜珠、田硕力
+孟清淮、易兰秦、宜珠、田硕力等人齐聚已废弃的法蓝庄参加吴百安的葬礼，这实际是孟清淮为了帮养父报仇攒的局，最终，孟清淮为养父的母亲报仇，杀死了钟岸柳。案件结束后，易兰秦前往长沙寻找母亲，继续追寻真相。孟清淮继续寻找当年吴百安名单上的买家。  基本上这11个案子串联起了前面的所有彩蛋和人物关系，作为主线的存在。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="24">
+          <td>08-24</td>
+          <td class="location">河南沁阳邱宅</td>
+          <td class="event">【37蠹虫案】
+人物：蔡知常、樊青笃、蔡小茵、方伊佳、樊芳薇、先生宋群、鬟赵秋儿
+河南沁阳雷峡镇丘宅。蔡知常、樊青笃、蔡小茵、方伊佳、樊芳薇、马尚力齐聚邱宅，豪门恩怨，死伤多人。 8月27日，赵洛意和账房先生宋群、丫鬟赵秋儿等人来到汉口要回投资。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="28">
+          <td>08-28</td>
+          <td class="location">湖北汉口范公馆</td>
+          <td class="event">【41歧路梢案】
+人物：范禾珍、范谷重、叶桑柔（假名）、汤肃
+众人齐聚湖北汉口范公馆，赵洛意二次返场。赵家的账房先生宋群竟是多年前的祁风（允颂），最终死于自己曾经的爱人“叶桑柔”之手。登场人物：范禾珍、范谷重、叶桑柔（假名）、汤肃、高襄生。强联动【丹水山庄】、【傀儡的记忆】、彩蛋【雾起云浮】（叶桑柔小的时候生长在莫曦孤儿院） 案件结束后，赵洛意在无奈的情况下想到一个拯救赵家的办法（假意同廖一乔结婚），实际抓紧更多时间筹钱，还招收了“叶小姐”作为丹水山庄的新管家。高襄生在案件结束几个月之后被委托要去赵家帮助自己的“新老板”买下赵家持有的汉阳兵工厂的全部股份，他不知此行将会与曾经的情人叶小姐重逢。（疑似新老板是日本商人田吉秀一）</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="8" data-day="30">
+          <td>08-30</td>
+          <td class="location">天津郊外</td>
+          <td class="event">【09瑾园孤花案】
+虞离雁和裴有季齐聚天津。离雁了解到好姐妹明珠被杀的真相。耿通贤最终被璃烟所杀。璃烟被关押，后被裂镜组织派人所救，继续北上寻亲。吴秉国曾拜虞西月为师。 9月，秋山琉璃化名为淄晶到山东济南复泉楼执行任务。 9月3日，冯竹离开赵家到达广州学医，借住在表姑葛月曼家。</td>
+        </tr>
+        <tr class="month-row" data-year="1914" data-month="9">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            9 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="4">
+          <td>09-04</td>
+          <td class="location">广州宝殊镇葛家</td>
+          <td class="event">【10紫藤夫人案】
+人物：葛月萝、葛月曼、王家兄弟、吕家兄弟、冯竹
+葛月萝、葛月曼、王家兄弟、吕家兄弟、冯竹等人齐聚广州宝殊镇。死者众多，最终葛月曼（冯月曼-茱丽）被妹妹葛月萝所杀。案件结束后，冯竹继续前往广州读书，但被葛月萝灌输了复仇的种子，似乎要黑化变成第二个葛月萝，伤害她同父异母的姐姐赵洛意。“太平天国宝藏”初现端倪。 六塔镇妖志之宝殊塔：镇压魑魅</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="5">
+          <td>09-05</td>
+          <td class="location">杭州显园</td>
+          <td class="event">【11水袖情案】
+人物：田续园、白雪生
+田续园、白雪生等人齐聚废弃的杭州“显园”。常晚亭被化名叶牡丹的白雪生所杀。案件结束后，白雪生决定北上京城投奔师姐璃烟。田绪园返回田家过中秋。联动【枉痴心】</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="7">
+          <td>09-07</td>
+          <td class="location">广东韶关望海村</td>
+          <td class="event">【26望海祠案】
+人物：的顾楚梦
+广东韶关西南望海村，姜絮秀因杀害多人被关了起来。9月底，因暴雨冲倒荒祠，选择投河逃跑的姜絮秀被途径的顾楚梦、夕婷所救。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="10">
+          <td>09-10</td>
+          <td class="location">浙江宁波蔷薇馆</td>
+          <td class="event">【12嗜睡蔷薇案】
+人物：陶孝先、顾青峰、黄昭然、罗明纱
+顾青峰返场。陶孝先、顾青峰、黄昭然、罗明纱等人齐聚宁波四明山的蔷薇馆。远亨商行老板罗亨理被侄子罗千海所杀，顾青峰从火中救出罗明纱。案件结束后罗明纱回上海处理抵押给廖氏商行的贷款事宜，遇到郭经理。罗明纱【曼娜】返场。案件结束后，黄昭然以“双艳侣”之名在“上海兆义商行”姚仲义那里找到一份工作。姚仲义希望开拓新的商路，派黄昭然前往袚赐娅考察。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="12">
+          <td>09-12</td>
+          <td class="location">天津西郊林家</td>
+          <td class="event">【13裂镜重圆】
+人物：卢佳怜（稽查）、林轶广、寒在上海
+天津林家，卢佳怜（稽查）、林轶广、徐粤彩登场。徐粤彩作为裂镜的首领继续以方胜元的名义讨袁。林轸远（反袁组织成员）北上继续反袁事业。 9月15日 廖雪寒在上海等待远亨罗氏的消息，此时并不知道罗家已经出事。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="16">
+          <td>09-16</td>
+          <td class="location">湖北鄂西</td>
+          <td class="event">【15鄂西山灵】
+人物：郑函贞、巴府山
+湖北湘西姊陵坪，郑函贞、巴隼登场。鹃歌被逼自杀。巴府山、周允棠被杀。联动【先灵祭】 六塔镇妖志之姊陵塔：镇压花鬼</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="16">
+          <td>09-16</td>
+          <td class="location">山东济南</td>
+          <td class="event">【24泉之馆】
+人物：水伯
+山东济南城南，瓜尔佳泰恒（石泰恒）被自己的亲生女儿瑞容所杀。水伯、弥生结局联动【魍魉塔】、木下武史结局联动【冥海缒幽】【裂镜重圆】，伊藤宽结局联动【冥海缒幽】、【复泉楼】。 9月19日 原稽查三处处长卢恩健被“反袁”组织首领徐粤彩亲自带人暗杀，报了杀夫之仇，发生爆炸，昏迷后被送往医院，后被人杀死。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="20">
+          <td>09-20</td>
+          <td class="location">西塘古镇</td>
+          <td class="event">【16月落洼】
+江苏与浙江交界处的西塘古镇“时珞庄”，安季奚（圣约翰大学神学院老师）被杀。安梧（北）成为39号病人。案件结束后，伍艾菲来到杭州一家孤儿院打工，遇见并未烧死的白延秋。睿司前往杭州田家做会计，结局联动【水袖情】、【枉痴心】、【幽灵复仇】。尔芙结局联动【幽灵复仇】 9月20日 廖雪寒通过郭望山得知罗家出事后罗明纱接手了罗家，决定继续上门讨债。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="21">
+          <td>09-21</td>
+          <td class="location">石家庄宝庄（独立故事，几乎无彩蛋）</td>
+          <td class="event">【19绝崖雕】
+河北正定宝庄，蒋飞鹰的故事。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="21">
+          <td>09-21</td>
+          <td class="location">江苏镇江阮宅（独立故事，几乎无彩蛋）</td>
+          <td class="event">【20失真的旋律】
+白天鹅和黑天鹅的故事。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="22">
+          <td>09-22</td>
+          <td class="location">山东济南</td>
+          <td class="event">【25复泉楼】
+人物：返场
+山东济南，淄晶（秋山琉璃）返场、吕微至（卢武哲）在父亲卢恩健死后继承稽查三处处长一职，成为保袁的中坚势力。联动【裂镜重圆】</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="25">
+          <td>09-25</td>
+          <td class="location">安徽章东</td>
+          <td class="event">【18章东镇迷案】
+人物：顾楚梦、的顾楚梦
+顾楚梦、穆夕婷齐聚安徽章庄，案件结束后，9月底，顾楚梦陪同夕婷回万庭集祭祖，还送蓝蕊去太湖畔的望梦山庄住下。因暴雨冲倒荒祠，选择投河逃跑的姜絮秀正好被途径的顾楚梦、夕婷所救。顾楚梦结局联动【失真的旋律】 9月26日 廖雪寒拜访谭公馆，请罗明纱还债。罗明纱提出用在上海的码头抵债。廖雪寒假意说回去考虑一番。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="28">
+          <td>09-28</td>
+          <td class="location">上海郊外谭公馆</td>
+          <td class="event">【30曼娜案】
+人物：韦太太（吕采茜）、谭尚致、谭仁昌、红儿、药材公司
+廖雪寒首次登场，罗明纱返场，韦太太（吕采茜）、谭尚致、谭承格齐聚谭公馆，谭仁昌、红儿、欣雅被杀。韦太太结局联动【期须乃至】，承格结局故事联动岳氏药材公司、夏叔娥的故事。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="9" data-day="28">
+          <td>09-28</td>
+          <td class="location">江西鄱阳湖</td>
+          <td class="event">【35雨异妍案】
+人物：爷万茂林、理陶烬恭、歌姬夏莲
+发生在江西鄱阳湖碧荷庄青蕖舫上，万家老爷万茂林、经理陶烬恭、歌姬夏莲、买办纪方原被杀。徐轻马寻找南京万家万金英的继承人继承在南昌的产业，继承人为万蒲怀，可能会与易温家的湘福货轮公司新的话事人易扬合作。 10月 伊藤宽收到樊宗楚的邀请，请他参加铁鲸号首航。 10月初，顾楚梦接到团长臣柳的邀请，参与重组春味社一事。 10月，姚仲义的“兆义商行”收购了“远亨罗氏”在武汉的产业。</td>
+        </tr>
+        <tr class="month-row" data-year="1914" data-month="10">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            10 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="10" data-day="1">
+          <td>10 月</td>
+          <td class="location">上海</td>
+          <td class="event">年初 易温和岳古在上海“江南黄岐庄”合办护士班，黛妮、尔芙（南）都参加了护士班的学习。尔芙后来还去“闸北西医院”做见习护士。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="10" data-day="2">
+          <td>10-02</td>
+          <td class="location">江苏无锡“暗波崖”异法馆</td>
+          <td class="event">【40暗波崖】
+人物：仙仪、应珊珊、头勉
+陶孝先返场，仙仪、应珊珊、头勉等人齐聚应宅。应动金因误以为自己破坏人伦而自杀，家宝被庞山仁所杀。强联动【嗜睡蔷薇】、彩蛋联动【春味社】、【孝衣新娘】、【曼娜】、【雾起云浮】、【傀儡的记忆】、【期须乃至】</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="10" data-day="5">
+          <td>10-05</td>
+          <td class="location">浙江杭州仰松园</td>
+          <td class="event">【28枉痴心案】
+人物：死了昆僮
+浙江杭州仰松园，田续园返场，找出母亲死亡的真相。杀死了昆僮、经固和阿叶。田继图被赶出仰松园后在孤儿院遇到了隐姓埋名的亲生父亲白延秋。联动【水袖情】</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="10" data-day="7">
+          <td>10-07</td>
+          <td class="location">河南新乡卫风邑</td>
+          <td class="event">【21野狐悠谈案】
+河南新乡卫风邑有狐山，卫风塔下，冯双骥返场，化名何千程。 六塔镇妖志之卫风塔：镇压狐妖</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="10" data-day="7">
+          <td>10-07</td>
+          <td class="location">南京城郊</td>
+          <td class="event">【33春味社案】
+顾楚梦返场。案件结束后先是去河南卫风邑调查狐妖作祟的案件，案件结束后顾请假带着妻子和丫鬟前往广东万庭集（大概是农历9月底，相当于11月15日左右）祭祖，途中遇到诅家庄送亲的事件。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="10" data-day="8">
+          <td>10-08</td>
+          <td class="location">武汉汉口</td>
+          <td class="event">【22雾起云浮案】
+武汉，柯家的故事。联动【嗜睡蔷薇】</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="10" data-day="16">
+          <td>10-16</td>
+          <td class="location">安徽巢湖崔庄（独立故事，几乎无彩蛋）</td>
+          <td class="event">【29孤舟萤】
+关于孤女小萤的故事。 10月17日，伊藤宽带于跃洋来到毗海村，伊藤宽因为看到过溺死的人对海底产生了恐惧，派于跃洋代替他参加首航。 10月18日，顾楚梦从卫风邑调查完狐妖作祟之案返程回南京途中看到诅家庄送亲事件。 10月18日上午，铁鲸号开始首航，伊藤宽返回青岛。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="10" data-day="19">
+          <td>10-19</td>
+          <td class="location">河南夏邑祖家庄</td>
+          <td class="event">【32诅家庄】
+熙绛兰结局联动【魍魉塔】</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="10" data-day="19">
+          <td>10-19</td>
+          <td class="location">山东济南别熙乡</td>
+          <td class="event">【34魍魉塔】
+人物：熙勤兼
+大盗“王两”的故事，熙勤兼、熙扬隆被杀，联动【泉之馆】、【孽岛疑云】 六塔镇妖志之魍魉塔：镇压魍魉</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="10" data-day="21">
+          <td>10-21</td>
+          <td class="location">湖北袚赐娅</td>
+          <td class="event">【36先灵祭】
+联动【雾起云浮】、【鄂西山灵】、黄昭然返场。案件结束后，黄昭然（艳侣）回到上海向姚仲义复命，姚仲义实际上是对当年虞北辰在两湖勘探时发现的原材料（硝石？）很感兴趣，这种矿产可以做出威力巨大的炸药。</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="10" data-day="22">
+          <td>10-22</td>
+          <td class="location">福州庄家</td>
+          <td class="event">【38烛影额妆】
+人物：庄亨禾（庄亨本）、房碧彩、张利愁、庄利念（紫袖）、房远
+庄亨禾（庄亨本）、房碧彩、张利愁、庄利念（紫袖）、（程）房远、林成贤再次齐聚福州庄家涨秋园。演绎革命线的故事。案件结束后，庄嘉禾（仟捌）继续为革命奔走，将前往山东“古家庄”与虞西月开始搞一番大事业。房远成为稽查三处的稽查。张利愁（贰禾）继续反袁事业。紫袖结局联动【瑾园孤花】前往天津解救璃烟。成贤结局联动湘西赶尸人【新篇章】？</td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="10" data-day="23">
+          <td>10-23</td>
+          <td class="location">山东青岛毗海村</td>
+          <td class="event">【31冥海缒幽】
+人物：于跃洋、颜睦宛、浦澄裳、孙孟真
+于跃洋、颜睦宛、浦澄裳、孙孟真、浦诚学齐聚“铁鲸号”。联动【泉之馆】</td>
+        </tr>
+        <tr class="month-row" data-year="1914" data-month="11">
+          <td colspan="3">
+            <span class="toggle-icon">▼</span>
+            11 月
+          </td>
+        </tr>
+        <tr class="event-row" data-year="1914" data-month="11" data-day="2">
+          <td>11-02</td>
+          <td class="location">湘南零陵东陵下村</td>
+          <td class="event">【39离地三寸】
+人物：覃巧丽、田灵姝、梨园恩仇
+登场人物：覃巧丽、田灵姝、施香 第一次出现【永生学会】，联动【鄂西山灵】、【珠帘异梦】 ———————————————————————— 总结来看：目前豪门系列分为主线剧情，已基本完结，革命线剧情，仍在持续进行中，太平天国宝藏剧情，已走完4/6，只有雪崖村镇压精怪的塔和万庭集镇压阴魔的塔没有出现。其他诸如梨园恩仇等篇章相对比较零散，如根据不同的主题也可进行划分，但是没有太多必要。 如果没有玩过的话也可以按照时间顺序来玩，当然按照出版顺序也是完全没有问题的。 后面会持续更新~</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="empty-state" id="empty-state">
+      ————永远不会到的1915————
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const chronicleBody = document.getElementById('chronicle-body');
+
+      // 生成水印
+      generateWatermark();
+
+      // 初始化年份下拉框
+      initYearSelect();
+
+      chronicleBody.addEventListener('click', function(e) {
+        const yearRow = e.target.closest('.year-row');
+        if (yearRow) {
+          toggleYear(yearRow);
+          return;
+        }
+
+        const monthRow = e.target.closest('.month-row');
+        if (monthRow) {
+          toggleMonth(monthRow);
+        }
+      });
+
+      function toggleYear(yearRow) {
+        const year = yearRow.dataset.year;
+        const isCollapsed = yearRow.classList.toggle('collapsed');
+
+        const allRows = chronicleBody.querySelectorAll('.month-row');
+        allRows.forEach(row => {
+          if (row.dataset.year === year) {
+            if (isCollapsed) {
+              row.classList.add('hidden');
+              hideMonthEvents(row);
+              if (!row.classList.contains('collapsed')) {
+                row.classList.add('collapsed');
+              }
+            } else {
+              row.classList.remove('hidden');
+            }
+          }
+        });
+      }
+
+      function toggleMonth(monthRow) {
+        const year = monthRow.dataset.year;
+        const month = monthRow.dataset.month;
+        const isCollapsed = monthRow.classList.toggle('collapsed');
+
+        const allEventRows = chronicleBody.querySelectorAll('.event-row');
+        allEventRows.forEach(row => {
+          if (row.dataset.year === year && row.dataset.month === month) {
+            if (isCollapsed) {
+              row.classList.add('hidden');
+            } else {
+              row.classList.remove('hidden');
+            }
+          }
+        });
+      }
+
+      function hideMonthEvents(monthRow) {
+        const year = monthRow.dataset.year;
+        const month = monthRow.dataset.month;
+        const allEventRows = chronicleBody.querySelectorAll('.event-row');
+        allEventRows.forEach(row => {
+          if (row.dataset.year === year && row.dataset.month === month) {
+            row.classList.add('hidden');
+          }
+        });
+      }
+
+      // 初始化年份下拉框
+      function initYearSelect() {
+        const yearSelect = document.getElementById('yearSelect');
+        const years = new Set();
+
+        // 收集所有年份
+        document.querySelectorAll('.year-row').forEach(row => {
+          years.add(parseInt(row.dataset.year));
+        });
+
+        // 按年份排序并添加到下拉框
+        Array.from(years).sort((a, b) => a - b).forEach(year => {
+          const option = document.createElement('option');
+          option.value = year;
+          option.textContent = year + ' 年';
+          yearSelect.appendChild(option);
+        });
+
+        // 监听年份变化，更新月份下拉框
+        yearSelect.addEventListener('change', function() {
+          updateMonthSelect(this.value);
+        });
+      }
+
+      // 更新月份下拉框
+      function updateMonthSelect(year) {
+        const monthSelect = document.getElementById('monthSelect');
+        monthSelect.innerHTML = '<option value="">选择月份</option>';
+
+        if (!year) return;
+
+        const months = new Set();
+        document.querySelectorAll(`.month-row[data-year="${year}"]`).forEach(row => {
+          months.add(parseInt(row.dataset.month));
+        });
+
+        Array.from(months).sort((a, b) => a - b).forEach(month => {
+          const option = document.createElement('option');
+          option.value = month;
+          option.textContent = month + ' 月';
+          monthSelect.appendChild(option);
+        });
+      }
+
+      // 初始化：隐藏所有月份和事件
+      initCollapsed();
+    });
+
+    function initCollapsed() {
+      document.querySelectorAll('.year-row').forEach(row => {
+        row.classList.add('collapsed');
+      });
+      document.querySelectorAll('.month-row').forEach(row => {
+        row.classList.add('hidden');
+        row.classList.add('collapsed');
+      });
+      document.querySelectorAll('.event-row').forEach(row => {
+        row.classList.add('hidden');
+      });
+    }
+
+    // 搜索功能
+    function searchChronicle() {
+      const searchInput = document.getElementById('searchInput').value.trim();
+      const yearSelect = document.getElementById('yearSelect').value;
+      const monthSelect = document.getElementById('monthSelect').value;
+      const searchInfo = document.getElementById('searchInfo');
+
+      // 获取所有行
+      const yearRows = document.querySelectorAll('.year-row');
+      const monthRows = document.querySelectorAll('.month-row');
+      const eventRows = document.querySelectorAll('.event-row');
+
+      // 如果没有搜索条件，显示所有内容
+      if (!searchInput && !yearSelect && !monthSelect) {
+        resetSearch();
+        return;
+      }
+
+      // 隐藏所有行
+      yearRows.forEach(row => row.classList.add('hidden'));
+      monthRows.forEach(row => row.classList.add('hidden'));
+      eventRows.forEach(row => row.classList.add('hidden'));
+
+      let matchCount = 0;
+      const matchedYears = new Set();
+
+      // 如果有年份选择
+      if (yearSelect) {
+        // 显示该年份的年份行
+        yearRows.forEach(row => {
+          if (row.dataset.year === yearSelect) {
+            row.classList.remove('hidden');
+            row.classList.remove('collapsed');
+            matchedYears.add(yearSelect);
+          }
+        });
+
+        // 如果有月份选择
+        if (monthSelect) {
+          // 显示该月份行
+          monthRows.forEach(row => {
+            if (row.dataset.year === yearSelect && row.dataset.month === monthSelect) {
+              row.classList.remove('hidden');
+              row.classList.remove('collapsed');
+            }
+          });
+
+          // 显示该月份下的事件
+          eventRows.forEach(row => {
+            if (row.dataset.year === yearSelect && row.dataset.month === monthSelect) {
+              if (searchInput) {
+                // 如果有搜索关键词，检查是否匹配
+                const eventText = row.querySelector('.event').textContent.toLowerCase();
+                const locationText = row.querySelector('.location').textContent.toLowerCase();
+                if (eventText.includes(searchInput.toLowerCase()) || locationText.includes(searchInput.toLowerCase())) {
+                  row.classList.remove('hidden');
+                  matchCount++;
+                }
+              } else {
+                row.classList.remove('hidden');
+                matchCount++;
+              }
+            }
+          });
+        } else {
+          // 没有选择月份，显示该年份的所有月份和事件
+          monthRows.forEach(row => {
+            if (row.dataset.year === yearSelect) {
+              row.classList.remove('hidden');
+              row.classList.remove('collapsed');
+            }
+          });
+
+          eventRows.forEach(row => {
+            if (row.dataset.year === yearSelect) {
+              if (searchInput) {
+                const eventText = row.querySelector('.event').textContent.toLowerCase();
+                const locationText = row.querySelector('.location').textContent.toLowerCase();
+                if (eventText.includes(searchInput.toLowerCase()) || locationText.includes(searchInput.toLowerCase())) {
+                  row.classList.remove('hidden');
+                  matchCount++;
+                }
+              } else {
+                row.classList.remove('hidden');
+                matchCount++;
+              }
+            }
+          });
+        }
+      } else if (searchInput) {
+        // 只有搜索关键词，没有选择年份
+        eventRows.forEach(row => {
+          const eventText = row.querySelector('.event').textContent.toLowerCase();
+          const locationText = row.querySelector('.location').textContent.toLowerCase();
+          if (eventText.includes(searchInput.toLowerCase()) || locationText.includes(searchInput.toLowerCase())) {
+            row.classList.remove('hidden');
+            matchCount++;
+
+            // 显示对应的月份行
+            const monthRow = document.querySelector(`.month-row[data-year="${row.dataset.year}"][data-month="${row.dataset.month}"]`);
+            if (monthRow) {
+              monthRow.classList.remove('hidden');
+              monthRow.classList.remove('collapsed');
+              matchedYears.add(row.dataset.year);
+            }
+          }
+        });
+
+        // 显示匹配的年份行
+        matchedYears.forEach(year => {
+          const yearRow = document.querySelector(`.year-row[data-year="${year}"]`);
+          if (yearRow) {
+            yearRow.classList.remove('hidden');
+            yearRow.classList.remove('collapsed');
+          }
+        });
+      }
+
+      // 更新搜索信息
+      if (matchCount > 0) {
+        searchInfo.textContent = `找到 ${matchCount} 条匹配的事件`;
+        searchInfo.style.color = '#27ae60';
+      } else {
+        searchInfo.textContent = '未找到匹配的事件';
+        searchInfo.style.color = '#e74c3c';
+      }
+    }
+
+    // 重置搜索
+    function resetSearch() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('yearSelect').value = '';
+      document.getElementById('monthSelect').innerHTML = '<option value="">选择月份</option>';
+      document.getElementById('searchInfo').textContent = '';
+
+      // 显示所有行
+      document.querySelectorAll('.year-row').forEach(row => {
+        row.classList.remove('hidden');
+        row.classList.add('collapsed');
+      });
+      document.querySelectorAll('.month-row').forEach(row => {
+        row.classList.add('hidden');
+        row.classList.add('collapsed');
+      });
+      document.querySelectorAll('.event-row').forEach(row => {
+        row.classList.add('hidden');
+      });
+    }
+
+    // 监听回车键搜索
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        searchChronicle();
+      }
+    });
+
+    // 生成水印
+    function generateWatermark() {
+      const watermark = document.getElementById('watermark');
+      const text = '版权所有 © 遥光';
+      const rows = 10;
+      const cols = 5;
+
+      for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+          const span = document.createElement('span');
+          span.className = 'watermark-text';
+          span.textContent = text;
+          span.style.left = (j * 25 + Math.random() * 10) + '%';
+          span.style.top = (i * 12 + Math.random() * 5) + '%';
+          watermark.appendChild(span);
+        }
+      }
+    }
+  </script>
+</body>
+</html>

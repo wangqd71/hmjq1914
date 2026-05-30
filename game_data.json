@@ -1,0 +1,860 @@
+{
+  "game_info": {
+    "title": "豪门惊情1914",
+    "version": "1.0",
+    "author": "遥光",
+    "description": "基于豪门惊情系列的跑团游戏，故事发生在1914年"
+  },
+  "player_templates": [
+    {
+      "id": "detective",
+      "name": "私家侦探",
+      "description": "受雇调查案件的私家侦探，擅长推理和调查",
+      "stats": {
+        "intelligence": 12,
+        "charisma": 8,
+        "agility": 8,
+        "perception": 12
+      },
+      "skills": ["调查", "推理", "观察"],
+      "background": "你是一名经验丰富的私家侦探，曾破获多起悬案。这次你收到了一封神秘的委托信，邀请你前往上海调查一系列离奇的案件。"
+    },
+    {
+      "id": "journalist",
+      "name": "新闻记者",
+      "description": "追求真相的记者，擅长获取信息和人脉",
+      "stats": {
+        "intelligence": 10,
+        "charisma": 12,
+        "agility": 8,
+        "perception": 10
+      },
+      "skills": ["采访", "说服", "观察"],
+      "background": "你是《海潮早报》的资深记者，对豪门恩怨有着浓厚的兴趣。最近上海发生的一系列案件引起了你的注意，你决定深入调查。"
+    },
+    {
+      "id": "doctor",
+      "name": "医生",
+      "description": "医术精湛的医生，擅长医疗和毒理分析",
+      "stats": {
+        "intelligence": 12,
+        "charisma": 8,
+        "agility": 8,
+        "perception": 10
+      },
+      "skills": ["医疗", "毒理分析", "观察"],
+      "background": "你是一名留学归来的医生，在上海开了一家诊所。最近你发现一些病人的症状异常，似乎与某种神秘的毒药有关。"
+    },
+    {
+      "id": "official",
+      "name": "政府官员",
+      "description": "在政府部门工作的官员，擅长权谋和人际关系",
+      "stats": {
+        "intelligence": 10,
+        "charisma": 10,
+        "agility": 8,
+        "perception": 10
+      },
+      "skills": ["权谋", "说服", "调查"],
+      "background": "你是北洋政府的一名官员，最近被派往上海调查一桩涉及政要的案件。你发现这背后隐藏着更大的阴谋。"
+    }
+  ],
+  "cases": [
+    {
+      "id": "case01",
+      "name": "丹水山庄案",
+      "date": "1914-08-18",
+      "location": "山西泽州",
+      "description": "赵万雷被毒杀于丹水山庄，嫌疑人包括赵洛意、虞君鸿、冯双骥等人。",
+      "difficulty": 3,
+      "scenes": ["scene01_hall", "scene01_garden", "scene01_study"],
+      "clues": [
+        {
+          "id": "clue01_01",
+          "name": "毒药瓶",
+          "description": "在后院发现一个小瓷瓶，里面残留着某种粉末",
+          "location": "scene01_garden",
+          "required_skill": "调查",
+          "difficulty": 5,
+          "hint": "这个瓶子很精致，不像是普通人家会有的东西"
+        },
+        {
+          "id": "clue01_02",
+          "name": "密信",
+          "description": "在书房发现一封密信，内容涉及黑狼会",
+          "location": "scene01_study",
+          "required_skill": "观察",
+          "difficulty": 7,
+          "hint": "信中的笔迹很熟悉"
+        },
+        {
+          "id": "clue01_03",
+          "name": "毒药配方",
+          "description": "在冯双骥的房间发现一张纸条，上面写着毒药配方",
+          "location": "scene01_garden",
+          "required_skill": "调查",
+          "difficulty": 8,
+          "hint": "这张纸条被藏在花盆下面"
+        }
+      ],
+      "suspects": [
+        {
+          "name": "赵洛意",
+          "description": "赵万雷的女儿，家族继承人",
+          "motive": "继承家产",
+          "alibi": "案发时在前厅招待客人",
+          "is_guilty": false,
+          "dialogue_id": "dialog_zhao"
+        },
+        {
+          "name": "虞君鸿",
+          "description": "赵万雷的朋友，来自太原",
+          "motive": "商业竞争",
+          "alibi": "案发时在花园散步",
+          "is_guilty": false,
+          "dialogue_id": "dialog_yu"
+        },
+        {
+          "name": "冯双骥",
+          "description": "赵万雷的管家，曾被黑狼会威胁",
+          "motive": "被黑狼会胁迫",
+          "alibi": "案发时在厨房准备茶点",
+          "is_guilty": true,
+          "dialogue_id": "dialog_feng"
+        }
+      ],
+      "solution": "冯双骥被黑狼会威胁，被迫在赵万雷的茶中下毒。他在厨房准备茶点时将毒药放入茶杯，导致赵万雷中毒身亡。",
+      "rewards": {
+        "intelligence": 2,
+        "reputation": 10
+      }
+    },
+    {
+      "id": "case02",
+      "name": "孽岛疑云案",
+      "date": "1914-08-15",
+      "location": "东海海岛",
+      "description": "贺世珍在东海海岛被杀，参加学术研讨会的还有罗亨理、谭尚致、安季奚。",
+      "difficulty": 4,
+      "scenes": ["scene02_island", "scene02_hall", "scene02_dock"],
+      "clues": [
+        {
+          "id": "clue02_01",
+          "name": "破碎的眼镜",
+          "description": "在死者身边发现一副破碎的眼镜",
+          "location": "scene02_island",
+          "required_skill": "观察",
+          "difficulty": 5,
+          "hint": "眼镜的款式很独特"
+        },
+        {
+          "id": "clue02_02",
+          "name": "毒针",
+          "description": "在死者颈部发现一根细针",
+          "location": "scene02_island",
+          "required_skill": "医疗",
+          "difficulty": 7,
+          "hint": "针上残留着某种毒素"
+        }
+      ],
+      "suspects": [
+        {
+          "name": "宋玉书",
+          "description": "研讨会参与者，与死者有旧怨",
+          "motive": "个人恩怨",
+          "alibi": "案发时在房间休息",
+          "is_guilty": true,
+          "dialogue_id": "dialog_song"
+        },
+        {
+          "name": "罗亨理",
+          "description": "富商，研讨会赞助者",
+          "motive": "商业利益",
+          "alibi": "案发时在甲板上",
+          "is_guilty": false,
+          "dialogue_id": "dialog_luo"
+        }
+      ],
+      "solution": "宋玉书因个人恩怨杀害贺世珍，使用毒针在死者颈部注射毒素。",
+      "rewards": {
+        "intelligence": 3,
+        "reputation": 15
+      }
+    },
+    {
+      "id": "case03",
+      "name": "珠帘异梦案",
+      "date": "1914-08-21",
+      "location": "苏州孟园",
+      "description": "陈轻梧被亲生儿子阿玉毒杀，孟如静、陈均梦、蒋嵩、林雅珠等人在场。",
+      "difficulty": 5,
+      "scenes": ["scene03_mengyuan", "scene03_garden", "scene03_room"],
+      "clues": [
+        {
+          "id": "clue03_01",
+          "name": "毒药残留",
+          "description": "在茶杯中发现毒药残留",
+          "location": "scene03_mengyuan",
+          "required_skill": "医疗",
+          "difficulty": 6,
+          "hint": "毒药被混入茶水中"
+        },
+        {
+          "id": "clue03_02",
+          "name": "遗书",
+          "description": "在陈轻梧房间发现一封遗书",
+          "location": "scene03_room",
+          "required_skill": "观察",
+          "difficulty": 8,
+          "hint": "遗书的笔迹有些异常"
+        }
+      ],
+      "suspects": [
+        {
+          "name": "阿玉",
+          "description": "陈轻梧的亲生儿子",
+          "motive": "为母亲报仇",
+          "alibi": "案发时在花园",
+          "is_guilty": true,
+          "dialogue_id": "dialog_ayu"
+        },
+        {
+          "name": "孟如静",
+          "description": "孟深的妹妹",
+          "motive": "家族恩怨",
+          "alibi": "案发时在客厅",
+          "is_guilty": false,
+          "dialogue_id": "dialog_meng"
+        }
+      ],
+      "solution": "阿玉为了给母亲报仇，在陈轻梧的茶中下毒。他利用自己的身份接近父亲，成功实施了谋杀。",
+      "rewards": {
+        "intelligence": 4,
+        "reputation": 20
+      }
+    },
+    {
+      "id": "case04",
+      "name": "跌落的玫瑰案",
+      "date": "1914-08-18",
+      "location": "上海雾夜总会",
+      "description": "前月蝶雪薇在雾夜总会被杀，田吉雾朗、月蝶、秋山琉璃等人在场。",
+      "difficulty": 4,
+      "scenes": ["scene04_club", "scene04_stage", "scene04_bar"],
+      "clues": [
+        {
+          "id": "clue04_01",
+          "name": "破碎的酒杯",
+          "description": "在死者身边发现一个破碎的酒杯",
+          "location": "scene04_bar",
+          "required_skill": "观察",
+          "difficulty": 5,
+          "hint": "酒杯中有残留的液体"
+        },
+        {
+          "id": "clue04_02",
+          "name": "匿名信",
+          "description": "在后台发现一封匿名信",
+          "location": "scene04_stage",
+          "required_skill": "调查",
+          "difficulty": 7,
+          "hint": "信中提到了一个秘密"
+        }
+      ],
+      "suspects": [
+        {
+          "name": "田吉雾朗",
+          "description": "雾夜总会总经理",
+          "motive": "掩盖秘密",
+          "alibi": "案发时在办公室",
+          "is_guilty": true,
+          "dialogue_id": "dialog_tianji"
+        },
+        {
+          "name": "月蝶",
+          "description": "夜总会舞女",
+          "motive": "嫉妒",
+          "alibi": "案发时在舞台上表演",
+          "is_guilty": false,
+          "dialogue_id": "dialog_yuedie"
+        }
+      ],
+      "solution": "田吉雾朗为了掩盖自己的秘密，在雪薇的酒中下毒，导致其死亡。",
+      "rewards": {
+        "intelligence": 3,
+        "reputation": 15
+      }
+    },
+    {
+      "id": "case05",
+      "name": "嗜睡蔷薇案",
+      "date": "1914-09-10",
+      "location": "宁波蔷薇馆",
+      "description": "罗亨理被侄子罗千海杀害，顾青峰、黄昭然等人在场。",
+      "difficulty": 5,
+      "scenes": ["scene05_mansion", "scene05_garden", "scene05_study"],
+      "clues": [
+        {
+          "id": "clue05_01",
+          "name": "染血的匕首",
+          "description": "在花园发现一把染血的匕首",
+          "location": "scene05_garden",
+          "required_skill": "调查",
+          "difficulty": 6,
+          "hint": "匕首上刻着一个名字"
+        },
+        {
+          "id": "clue05_02",
+          "name": "遗嘱",
+          "description": "在书房发现一份遗嘱",
+          "location": "scene05_study",
+          "required_skill": "观察",
+          "difficulty": 8,
+          "hint": "遗嘱的内容被修改过"
+        }
+      ],
+      "suspects": [
+        {
+          "name": "罗千海",
+          "description": "罗亨理的侄子",
+          "motive": "争夺遗产",
+          "alibi": "案发时在客厅",
+          "is_guilty": true,
+          "dialogue_id": "dialog_luoqianhai"
+        },
+        {
+          "name": "顾青峰",
+          "description": "厨师，化名王丰州",
+          "motive": "个人恩怨",
+          "alibi": "案发时在厨房",
+          "is_guilty": false,
+          "dialogue_id": "dialog_gu"
+        }
+      ],
+      "solution": "罗千海为了争夺遗产，在罗亨理的茶中下毒，然后用匕首补刀，制造抢劫杀人的假象。",
+      "rewards": {
+        "intelligence": 4,
+        "reputation": 20
+      }
+    }
+  ],
+  "scenes": {
+    "scene01_hall": {
+      "name": "丹水山庄大厅",
+      "description": "宽敞的大厅，装饰着华丽的字画和古董。赵万雷的尸体躺在太师椅上，脸色发青。",
+      "connections": ["scene01_garden", "scene01_study"],
+      "npcs": ["赵洛意", "虞君鸿"],
+      "items": ["茶杯", "信件"],
+      "events": []
+    },
+    "scene01_garden": {
+      "name": "丹水山庄后院",
+      "description": "幽静的后院，种满了花草。角落里有一个花盆，看起来有些异常。",
+      "connections": ["scene01_hall"],
+      "npcs": [],
+      "items": ["花盆", "毒药瓶"],
+      "events": [
+        {
+          "trigger": "examine花盆",
+          "result": "在花盆下发现一个小瓷瓶"
+        }
+      ]
+    },
+    "scene01_study": {
+      "name": "丹水山庄书房",
+      "description": "古色古香的书房，书架上摆满了古籍。书桌上有一封未寄出的信。",
+      "connections": ["scene01_hall"],
+      "npcs": [],
+      "items": ["信件", "账本"],
+      "events": [
+        {
+          "trigger": "examine信件",
+          "result": "发现一封密信，内容涉及黑狼会"
+        }
+      ]
+    },
+    "scene02_island": {
+      "name": "东海海岛",
+      "description": "孤悬海外的小岛，岛上有一座废弃的灯塔。死者倒在灯塔下的草地上。",
+      "connections": ["scene02_hall", "scene02_dock"],
+      "npcs": ["宋玉书", "罗亨理"],
+      "items": ["眼镜", "毒针"],
+      "events": []
+    },
+    "scene02_hall": {
+      "name": "海岛会客厅",
+      "description": "简陋的会客厅，摆放着几张桌椅。研讨会上的资料散落一地。",
+      "connections": ["scene02_island"],
+      "npcs": ["安季奚"],
+      "items": ["研讨会资料"],
+      "events": []
+    },
+    "scene02_dock": {
+      "name": "海岛码头",
+      "description": "破旧的码头，停靠着一艘小船。码头上有一些脚印。",
+      "connections": ["scene02_island"],
+      "npcs": [],
+      "items": ["脚印", "船票"],
+      "events": [
+        {
+          "trigger": "examine脚印",
+          "result": "发现一串通向灯塔的脚印"
+        }
+      ]
+    },
+    "scene03_mengyuan": {
+      "name": "苏州孟园大厅",
+      "description": "典雅的大厅，摆放着精致的家具。陈轻梧的尸体躺在地上，旁边有一杯未喝完的茶。",
+      "connections": ["scene03_garden", "scene03_room"],
+      "npcs": ["孟如静", "陈均梦"],
+      "items": ["茶杯", "毒药残留"],
+      "events": []
+    },
+    "scene03_garden": {
+      "name": "孟园花园",
+      "description": "美丽的花园，种满了各种花卉。角落里有一个秋千。",
+      "connections": ["scene03_mengyuan"],
+      "npcs": ["阿玉"],
+      "items": ["秋千", "花束"],
+      "events": [
+        {
+          "trigger": "talk阿玉",
+          "result": "阿玉神色慌张，似乎在隐瞒什么"
+        }
+      ]
+    },
+    "scene03_room": {
+      "name": "陈轻梧的房间",
+      "description": "陈设简单的房间，书桌上有一封遗书。",
+      "connections": ["scene03_mengyuan"],
+      "npcs": [],
+      "items": ["遗书", "照片"],
+      "events": [
+        {
+          "trigger": "examine遗书",
+          "result": "发现一封遗书，但笔迹有些异常"
+        }
+      ]
+    },
+    "scene04_club": {
+      "name": "雾夜总会大厅",
+      "description": "豪华的夜总会大厅，舞池中央有一具尸体。音乐还在播放，气氛诡异。",
+      "connections": ["scene04_stage", "scene04_bar"],
+      "npcs": ["田吉雾朗", "月蝶"],
+      "items": ["尸体", "破碎的酒杯"],
+      "events": []
+    },
+    "scene04_stage": {
+      "name": "夜总会舞台",
+      "description": "灯光昏暗的舞台，后台有一个化妆间。",
+      "connections": ["scene04_club"],
+      "npcs": ["秋山琉璃"],
+      "items": ["化妆盒", "匿名信"],
+      "events": [
+        {
+          "trigger": "examine化妆盒",
+          "result": "在化妆盒夹层中发现一封匿名信"
+        }
+      ]
+    },
+    "scene04_bar": {
+      "name": "夜总会吧台",
+      "description": "长长的吧台，酒架上摆满了各种酒类。吧台上有一个破碎的酒杯。",
+      "connections": ["scene04_club"],
+      "npcs": [],
+      "items": ["酒杯", "调酒器"],
+      "events": [
+        {
+          "trigger": "examine酒杯",
+          "result": "酒杯中有残留的液体，散发出淡淡的苦味"
+        }
+      ]
+    },
+    "scene05_mansion": {
+      "name": "蔷薇馆大厅",
+      "description": "典雅的大厅，墙上挂满了蔷薇画作。罗亨理的尸体躺在沙发上。",
+      "connections": ["scene05_garden", "scene05_study"],
+      "npcs": ["罗千海", "顾青峰"],
+      "items": ["尸体", "蔷薇花"],
+      "events": []
+    },
+    "scene05_garden": {
+      "name": "蔷薇馆花园",
+      "description": "美丽的花园，种满了各色蔷薇。草地上有一把染血的匕首。",
+      "connections": ["scene05_mansion"],
+      "npcs": [],
+      "items": ["匕首", "脚印"],
+      "events": [
+        {
+          "trigger": "examine匕首",
+          "result": "匕首上刻着'千海'两个字"
+        }
+      ]
+    },
+    "scene05_study": {
+      "name": "蔷薇馆书房",
+      "description": "古朴的书房，书桌上有一份遗嘱。",
+      "connections": ["scene05_mansion"],
+      "npcs": [],
+      "items": ["遗嘱", "账本"],
+      "events": [
+        {
+          "trigger": "examine遗嘱",
+          "result": "发现一份遗嘱，但内容被修改过"
+        }
+      ]
+    }
+  },
+  "dialogues": {
+    "dialog_zhao": {
+      "speaker": "赵洛意",
+      "portrait": "zhao_luoyi.png",
+      "options": [
+        {
+          "text": "赵小姐，请问案发时你在哪里？",
+          "response": "赵洛意说：'我当时在前厅招待客人，根本没有机会接近父亲。'",
+          "effect": {
+            "relationship": "赵洛意",
+            "change": 5
+          }
+        },
+        {
+          "text": "你父亲最近有什么异常吗？",
+          "response": "赵洛意说：'父亲最近确实有些忧心忡忡，似乎在担心什么事情。'",
+          "effect": {
+            "clue": "clue01_02",
+            "unlock": true
+          }
+        },
+        {
+          "text": "你对冯双骥有什么看法？",
+          "response": "赵洛意说：'冯管家一向忠心耿耿，但最近他似乎有些心不在焉。'",
+          "effect": {
+            "suspicion": "冯双骥",
+            "change": 10
+          }
+        }
+      ]
+    },
+    "dialog_yu": {
+      "speaker": "虞君鸿",
+      "portrait": "yu_junhong.png",
+      "options": [
+        {
+          "text": "虞先生，你和赵万雷是什么关系？",
+          "response": "虞君鸿说：'我是赵先生的老朋友，这次是来拜访他的。'",
+          "effect": {
+            "relationship": "虞君鸿",
+            "change": 5
+          }
+        },
+        {
+          "text": "案发时你在做什么？",
+          "response": "虞君鸿说：'我当时在花园散步，呼吸新鲜空气。'",
+          "effect": {
+            "alibi_check": "虞君鸿",
+            "result": "花园里确实有他的脚印"
+          }
+        }
+      ]
+    },
+    "dialog_feng": {
+      "speaker": "冯双骥",
+      "portrait": "feng_shuangji.png",
+      "options": [
+        {
+          "text": "冯管家，你案发时在做什么？",
+          "response": "冯双骥说：'我在厨房准备茶点，准备给老爷送去。'",
+          "effect": {
+            "suspicion": "冯双骥",
+            "change": 15
+          }
+        },
+        {
+          "text": "你最近有没有遇到什么奇怪的事情？",
+          "response": "冯双骥神色慌张地说：'没...没有，一切都很正常。'",
+          "effect": {
+            "clue": "clue01_03",
+            "unlock": true
+          }
+        },
+        {
+          "text": "有人威胁过你吗？",
+          "response": "冯双骥脸色大变：'你...你怎么知道的？'",
+          "effect": {
+            "confession": "冯双骥",
+            "trigger": true
+          }
+        }
+      ]
+    },
+    "dialog_song": {
+      "speaker": "宋玉书",
+      "portrait": "song_yushu.png",
+      "options": [
+        {
+          "text": "宋先生，你和贺世珍是什么关系？",
+          "response": "宋玉书说：'我们是大学同学，但已经很多年没有联系了。'",
+          "effect": {
+            "relationship": "宋玉书",
+            "change": 3
+          }
+        },
+        {
+          "text": "案发时你在做什么？",
+          "response": "宋玉书说：'我当时在房间休息，身体有些不舒服。'",
+          "effect": {
+            "alibi_check": "宋玉书",
+            "result": "有人看到他离开房间"
+          }
+        }
+      ]
+    },
+    "dialog_luo": {
+      "speaker": "罗亨理",
+      "portrait": "luo_hengli.png",
+      "options": [
+        {
+          "text": "罗先生，你为什么要赞助这次研讨会？",
+          "response": "罗亨理说：'我对学术研究很感兴趣，而且这也是扩大人脉的好机会。'",
+          "effect": {
+            "relationship": "罗亨理",
+            "change": 5
+          }
+        },
+        {
+          "text": "你对贺世珍的死有什么看法？",
+          "response": "罗亨理说：'这太可怕了，我完全没想到会发生这样的事情。'",
+          "effect": {
+            "suspicion": "罗亨理",
+            "change": 5
+          }
+        }
+      ]
+    },
+    "dialog_ayu": {
+      "speaker": "阿玉",
+      "portrait": "ayu.png",
+      "options": [
+        {
+          "text": "阿玉，你父亲最近怎么样？",
+          "response": "阿玉低着头说：'父亲...他最近很少回家。'",
+          "effect": {
+            "relationship": "阿玉",
+            "change": 5
+          }
+        },
+        {
+          "text": "案发时你在哪里？",
+          "response": "阿玉说：'我在花园里...我没有杀父亲！'",
+          "effect": {
+            "suspicion": "阿玉",
+            "change": 20
+          }
+        },
+        {
+          "text": "你母亲是怎么死的？",
+          "response": "阿玉眼中闪过一丝恨意：'母亲是被他害死的！'",
+          "effect": {
+            "clue": "clue03_02",
+            "unlock": true
+          }
+        }
+      ]
+    },
+    "dialog_meng": {
+      "speaker": "孟如静",
+      "portrait": "meng_rujing.png",
+      "options": [
+        {
+          "text": "孟小姐，你和陈轻梧是什么关系？",
+          "response": "孟如静说：'他是我哥哥孟深的朋友，但我对他没什么好感。'",
+          "effect": {
+            "relationship": "孟如静",
+            "change": 3
+          }
+        },
+        {
+          "text": "你对陈轻梧的死有什么看法？",
+          "response": "孟如静说：'他作恶多端，这是报应。'",
+          "effect": {
+            "suspicion": "孟如静",
+            "change": 10
+          }
+        }
+      ]
+    },
+    "dialog_tianji": {
+      "speaker": "田吉雾朗",
+      "portrait": "tianji_wulang.png",
+      "options": [
+        {
+          "text": "田吉先生，你认识死者吗？",
+          "response": "田吉雾朗说：'她是这里的常客，但我并不了解她。'",
+          "effect": {
+            "relationship": "田吉雾朗",
+            "change": 3
+          }
+        },
+        {
+          "text": "案发时你在哪里？",
+          "response": "田吉雾朗说：'我在办公室处理公务，有人可以作证。'",
+          "effect": {
+            "alibi_check": "田吉雾朗",
+            "result": "他的不在场证明有些可疑"
+          }
+        }
+      ]
+    },
+    "dialog_yuedie": {
+      "speaker": "月蝶",
+      "portrait": "yuedie.png",
+      "options": [
+        {
+          "text": "你和雪薇是什么关系？",
+          "response": "月蝶说：'我们是同事，也是竞争对手。'",
+          "effect": {
+            "relationship": "月蝶",
+            "change": 5
+          }
+        },
+        {
+          "text": "你对她有什么看法？",
+          "response": "月蝶说：'她很有才华，但野心太大了。'",
+          "effect": {
+            "suspicion": "月蝶",
+            "change": 10
+          }
+        }
+      ]
+    },
+    "dialog_luoqianhai": {
+      "speaker": "罗千海",
+      "portrait": "luo_qianhai.png",
+      "options": [
+        {
+          "text": "罗千海，你叔叔的死对你有什么影响？",
+          "response": "罗千海说：'叔叔的去世让我很悲痛，但我也继承了他的遗产。'",
+          "effect": {
+            "suspicion": "罗千海",
+            "change": 25
+          }
+        },
+        {
+          "text": "案发时你在哪里？",
+          "response": "罗千海说：'我在客厅招待客人，有很多人可以作证。'",
+          "effect": {
+            "alibi_check": "罗千海",
+            "result": "他的不在场证明似乎很完美"
+          }
+        }
+      ]
+    },
+    "dialog_gu": {
+      "speaker": "顾青峰",
+      "portrait": "gu_qingfeng.png",
+      "options": [
+        {
+          "text": "你在这里工作多久了？",
+          "response": "顾青峰说：'我刚来不久，是来应聘厨师的。'",
+          "effect": {
+            "relationship": "顾青峰",
+            "change": 5
+          }
+        },
+        {
+          "text": "案发时你在做什么？",
+          "response": "顾青峰说：'我在厨房准备晚餐，没有离开过。'",
+          "effect": {
+            "alibi_check": "顾青峰",
+            "result": "厨房的其他员工证实了他的说法"
+          }
+        }
+      ]
+    }
+  },
+  "items": {
+    "item01": {
+      "name": "茶杯",
+      "description": "一个精致的青花瓷茶杯，里面残留着茶水",
+      "type": "evidence"
+    },
+    "item02": {
+      "name": "信件",
+      "description": "一封未寄出的信，内容涉及秘密交易",
+      "type": "evidence"
+    },
+    "item03": {
+      "name": "毒药瓶",
+      "description": "一个小瓷瓶，里面残留着白色粉末",
+      "type": "evidence"
+    },
+    "item04": {
+      "name": "匕首",
+      "description": "一把锋利的匕首，刀刃上沾有血迹",
+      "type": "evidence"
+    },
+    "item05": {
+      "name": "遗书",
+      "description": "一封遗书，内容令人费解",
+      "type": "evidence"
+    },
+    "item06": {
+      "name": "眼镜",
+      "description": "一副破碎的眼镜，镜片已经碎裂",
+      "type": "evidence"
+    },
+    "item07": {
+      "name": "毒针",
+      "description": "一根细长的银针，针尖上有黑色物质",
+      "type": "evidence"
+    },
+    "item08": {
+      "name": "匿名信",
+      "description": "一封匿名信，内容威胁死者",
+      "type": "evidence"
+    },
+    "item09": {
+      "name": "账本",
+      "description": "一本账本，记录着一些可疑的交易",
+      "type": "evidence"
+    },
+    "item10": {
+      "name": "照片",
+      "description": "一张老照片，照片中的人已经模糊不清",
+      "type": "clue"
+    }
+  },
+  "endings": {
+    "case01_success": {
+      "title": "真相大白",
+      "description": "你成功揭露了冯双骥的罪行，为赵万雷伸张了正义。",
+      "effect": {
+        "reputation": 50,
+        "money": 1000
+      }
+    },
+    "case01_fail": {
+      "title": "迷雾重重",
+      "description": "你没能找到真凶，案件成为悬案。",
+      "effect": {
+        "reputation": -20
+      }
+    },
+    "case02_success": {
+      "title": "正义伸张",
+      "description": "你成功指认了宋玉书，为贺世珍讨回了公道。",
+      "effect": {
+        "reputation": 50,
+        "money": 1500
+      }
+    },
+    "case02_fail": {
+      "title": "逍遥法外",
+      "description": "宋玉书逃脱了法律的制裁，你感到深深的无力。",
+      "effect": {
+        "reputation": -30
+      }
+    }
+  }
+}

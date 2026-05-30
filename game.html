@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>豪门惊情1914 - 跑团游戏</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #e0e0e0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* 水印样式 */
+    .watermark {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      color: rgba(255, 255, 255, 0.1);
+      font-size: 14px;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    /* 通用容器 */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* 游戏头部 */
+    .game-header {
+      text-align: center;
+      padding: 30px 0;
+      background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 100%);
+      border-bottom: 2px solid rgba(255,215,0,0.3);
+      margin-bottom: 30px;
+    }
+
+    .game-title {
+      font-size: 42px;
+      font-weight: bold;
+      color: #ffd700;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+      margin-bottom: 10px;
+    }
+
+    .game-subtitle {
+      font-size: 18px;
+      color: #aaa;
+      font-style: italic;
+    }
+
+    /* 面板通用样式 */
+    .panel {
+      background: rgba(30, 30, 50, 0.9);
+      border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+
+    .panel-title {
+      font-size: 22px;
+      color: #ffd700;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,215,0,0.3);
+    }
+
+    /* 按钮样式 */
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      margin: 5px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #ffd700 0%, #ffb300 100%);
+      color: #1a1a2e;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(255,215,0,0.4);
+    }
+
+    .btn-secondary {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    .btn-danger {
+      background: #c0392b;
+      color: #fff;
+    }
+
+    .btn-success {
+      background: #27ae60;
+      color: #fff;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* 角色创建界面 */
+    .character-creation {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .template-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+    }
+
+    .template-card {
+      background: rgba(40, 40, 60, 0.8);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .template-card:hover {
+      border-color: #ffd700;
+      transform: translateY(-3px);
+    }
+
+    .template-card.selected {
+      border-color: #ffd700;
+      background: rgba(255,215,0,0.1);
+    }
+
+    .template-name {
+      font-size: 20px;
+      font-weight: bold;
+      color: #ffd700;
+      margin-bottom: 10px;
+    }
+
+    .template-desc {
+      font-size: 14px;
+      color: #aaa;
+      margin-bottom: 15px;
+    }
+
+    .template-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-item {
+      font-size: 13px;
+      color: #ccc;
+    }
+
+    .stat-value {
+      color: #ffd700;
+      font-weight: bold;
+    }
+
+    /* 角色信息面板 */
+    .character-panel {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .char-info {
+      flex: 1;
+      min-width: 300px;
+    }
+
+    .char-stats {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .stat-bar {
+      margin-bottom: 12px;
+    }
+
+    .stat-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    .stat-progress {
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .stat-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ffd700, #ffb300);
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+
+    /* 案件选择界面 */
+    .case-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 15px;
+    }
+
+    .case-card {
+      background: rgba(40, 40, 60, 0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .case-card:hover {
+      border-color: #ffd700;
+    }
+
+    .case-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffd700;
+      margin-bottom: 10px;
+    }
+
+    .case-meta {
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 10px;
+    }
+
+    .case-desc {
+      font-size: 14px;
+      color: #ccc;
+      line-height: 1.5;
+    }
+
+    .difficulty {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .difficulty-3 { background: #f39c12; color: #000; }
+    .difficulty-4 { background: #e67e22; color: #000; }
+    .difficulty-5 { background: #e74c3c; color: #fff; }
+
+    /* 场景探索界面 */
+    .scene-container {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .scene-main {
+      flex: 2;
+      min-width: 400px;
+    }
+
+    .scene-sidebar {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .scene-description {
+      background: rgba(0,0,0,0.3);
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      line-height: 1.8;
+      font-size: 16px;
+    }
+
+    .scene-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    /* 对话系统 */
+    .dialogue-box {
+      background: rgba(20, 20, 40, 0.95);
+      border: 2px solid rgba(255,215,0,0.5);
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+    }
+
+    .dialogue-speaker {
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffd700;
+      margin-bottom: 15px;
+    }
+
+    .dialogue-text {
+      font-size: 16px;
+      line-height: 1.8;
+      margin-bottom: 20px;
+      color: #ddd;
+    }
+
+    .dialogue-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .dialogue-option {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .dialogue-option:hover {
+      background: rgba(255,215,0,0.1);
+      border-color: #ffd700;
+    }
+
+    /* 调查系统 */
+    .investigation-panel {
+      background: rgba(30, 30, 50, 0.9);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .clue-item {
+      background: rgba(40, 40, 60, 0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .clue-item:hover {
+      border-color: #ffd700;
+    }
+
+    .clue-item.found {
+      border-color: #27ae60;
+      background: rgba(39, 174, 96, 0.1);
+    }
+
+    .clue-name {
+      font-weight: bold;
+      color: #ffd700;
+      margin-bottom: 5px;
+    }
+
+    .clue-desc {
+      font-size: 14px;
+      color: #aaa;
+    }
+
+    /* 推理系统 */
+    .deduction-panel {
+      background: rgba(30, 30, 50, 0.9);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .suspect-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .suspect-card {
+      background: rgba(40, 40, 60, 0.8);
+      border: 2px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .suspect-card:hover {
+      border-color: #ffd700;
+    }
+
+    .suspect-card.accused {
+      border-color: #e74c3c;
+    }
+
+    .suspect-name {
+      font-size: 18px;
+      font-weight: bold;
+      color: #ffd700;
+      margin-bottom: 8px;
+    }
+
+    .suspect-info {
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 5px;
+    }
+
+    /* 背包/线索栏 */
+    .inventory-panel {
+      background: rgba(30, 30, 50, 0.9);
+      border-radius: 10px;
+      padding: 15px;
+    }
+
+    .inventory-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 10px;
+    }
+
+    .inventory-slot {
+      background: rgba(40, 40, 60, 0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .inventory-slot.empty {
+      opacity: 0.5;
+    }
+
+    .inventory-icon {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .inventory-name {
+      font-size: 11px;
+      color: #aaa;
+    }
+
+    /* 存档系统 */
+    .save-load-panel {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .save-slot {
+      flex: 1;
+      min-width: 200px;
+      background: rgba(40, 40, 60, 0.8);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .save-slot:hover {
+      border-color: #ffd700;
+    }
+
+    .save-slot.empty {
+      opacity: 0.5;
+    }
+
+    .save-slot-title {
+      font-weight: bold;
+      color: #ffd700;
+      margin-bottom: 8px;
+    }
+
+    .save-slot-info {
+      font-size: 13px;
+      color: #aaa;
+    }
+
+    /* 游戏日志 */
+    .game-log {
+      background: rgba(0,0,0,0.3);
+      border-radius: 8px;
+      padding: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .log-entry {
+      padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .log-time {
+      color: #888;
+      font-size: 12px;
+    }
+
+    .log-text {
+      color: #ddd;
+    }
+
+    /* 模态框 */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #1e1e32;
+      border: 2px solid #ffd700;
+      border-radius: 15px;
+      padding: 30px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-title {
+      font-size: 24px;
+      color: #ffd700;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    /* 隐藏页面 */
+    .page {
+      display: none;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* 导航栏 */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(20, 20, 40, 0.95);
+      padding: 15px 25px;
+      border-bottom: 1px solid rgba(255,215,0,0.3);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .nav-brand {
+      font-size: 20px;
+      font-weight: bold;
+      color: #ffd700;
+    }
+
+    .nav-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      .game-title {
+        font-size: 28px;
+      }
+
+      .template-grid,
+      .case-list,
+      .suspect-list {
+        grid-template-columns: 1fr;
+      }
+
+      .scene-container {
+        flex-direction: column;
+      }
+
+      .scene-main,
+      .scene-sidebar {
+        min-width: 100%;
+      }
+
+      .character-panel {
+        flex-direction: column;
+      }
+
+      .char-info,
+      .char-stats {
+        min-width: 100%;
+      }
+    }
+
+    /* 滚动条样式 */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(0,0,0,0.2);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255,215,0,0.5);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255,215,0,0.7);
+    }
+
+    /* 动画效果 */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease;
+    }
+
+    /* 结局显示 */
+    .ending-screen {
+      text-align: center;
+      padding: 50px;
+    }
+
+    .ending-title {
+      font-size: 36px;
+      color: #ffd700;
+      margin-bottom: 20px;
+    }
+
+    .ending-text {
+      font-size: 18px;
+      line-height: 1.8;
+      margin-bottom: 30px;
+      color: #ccc;
+    }
+
+    .ending-stats {
+      background: rgba(0,0,0,0.3);
+      padding: 20px;
+      border-radius: 10px;
+      display: inline-block;
+    }
+
+    .stat-line {
+      margin: 10px 0;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="watermark">版权所有 © 遥光</div>
+
+  <div class="navbar">
+    <div class="nav-brand">豪门惊情1914</div>
+    <div class="nav-actions">
+      <button class="btn btn-secondary" onclick="showSaveLoadModal()">存档/读档</button>
+      <button class="btn btn-secondary" onclick="showSettingsModal()">设置</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- 开始页面 -->
+    <div id="page-start" class="page active">
+      <div class="game-header">
+        <h1 class="game-title">豪门惊情1914</h1>
+        <p class="game-subtitle">一段发生在民国初年的悬疑故事</p>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">游戏介绍</h2>
+        <p style="line-height: 1.8; margin-bottom: 20px;">
+          1914年，中华大地正值乱世。北洋政府统治下的中国，表面繁荣，暗流涌动。
+          在这风云变幻的年代，一系列离奇的案件接连发生，牵扯出豪门恩怨、商业阴谋、政治斗争...
+          你将扮演一名侦探，深入调查这些案件，揭开隐藏在繁华背后的真相。
+        </p>
+        <div style="text-align: center;">
+          <button class="btn btn-primary" onclick="startNewGame()">开始新游戏</button>
+          <button class="btn btn-secondary" onclick="showLoadModal()">继续游戏</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">操作说明</h2>
+        <p style="line-height: 1.8;">
+          • 点击选项进行对话和选择<br>
+          • 在场景中探索可以发现线索和物品<br>
+          • 收集足够的线索后可以进行推理<br>
+          • 正确指认凶手即可破案<br>
+          • 游戏支持存档和读档功能
+        </p>
+      </div>
+    </div>
+
+    <!-- 角色创建页面 -->
+    <div id="page-character" class="page">
+      <div class="panel">
+        <h2 class="panel-title">选择你的身份</h2>
+        <div class="template-grid" id="template-grid">
+          <!-- 由JS动态生成 -->
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2 class="panel-title">角色预览</h2>
+        <div id="character-preview">
+          <p style="color: #888; text-align: center;">请选择一个职业模板</p>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <button class="btn btn-secondary" onclick="showPage('page-start')">返回</button>
+        <button class="btn btn-primary" id="btn-confirm-char" onclick="confirmCharacter()" disabled>确认选择</button>
+      </div>
+    </div>
+
+    <!-- 案件选择页面 -->
+    <div id="page-cases" class="page">
+      <div class="panel">
+        <h2 class="panel-title">选择案件</h2>
+        <p style="color: #aaa; margin-bottom: 20px;">选择一个案件开始调查</p>
+        <div class="case-list" id="case-list">
+          <!-- 由JS动态生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 游戏主页面 -->
+    <div id="page-game" class="page">
+      <div class="character-panel panel">
+        <div class="char-info">
+          <h3 style="color: #ffd700; margin-bottom: 10px;">角色信息</h3>
+          <div id="char-name" style="font-size: 18px; font-weight: bold; margin-bottom: 5px;">私家侦探</div>
+          <div id="char-desc" style="font-size: 14px; color: #aaa; margin-bottom: 10px;">受雇调查案件的私家侦探</div>
+          <div id="char-skills" style="font-size: 13px; color: #888;">技能：调查、推理、观察</div>
+        </div>
+        <div class="char-stats">
+          <h3 style="color: #ffd700; margin-bottom: 15px;">属性</h3>
+          <div class="stat-bar">
+            <div class="stat-label"><span>智力</span><span id="stat-int">12</span></div>
+            <div class="stat-progress"><div class="stat-fill" id="stat-int-bar" style="width: 60%"></div></div>
+          </div>
+          <div class="stat-bar">
+            <div class="stat-label"><span>魅力</span><span id="stat-cha">8</span></div>
+            <div class="stat-progress"><div class="stat-fill" id="stat-cha-bar" style="width: 40%"></div></div>
+          </div>
+          <div class="stat-bar">
+            <div class="stat-label"><span>敏捷</span><span id="stat-agi">8</span></div>
+            <div class="stat-progress"><div class="stat-fill" id="stat-agi-bar" style="width: 40%"></div></div>
+          </div>
+          <div class="stat-bar">
+            <div class="stat-label"><span>感知</span><span id="stat-per">12</span></div>
+            <div class="stat-progress"><div class="stat-fill" id="stat-per-bar" style="width: 60%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scene-container">
+        <div class="scene-main">
+          <!-- 场景描述 -->
+          <div class="panel" id="scene-panel">
+            <div class="scene-description" id="scene-desc">
+              场景描述加载中...
+            </div>
+            <div class="scene-actions" id="scene-actions">
+              <!-- 由JS动态生成 -->
+            </div>
+          </div>
+
+          <!-- 对话框 -->
+          <div class="dialogue-box" id="dialogue-box" style="display: none;">
+            <div class="dialogue-speaker" id="dialogue-speaker">NPC</div>
+            <div class="dialogue-text" id="dialogue-text">对话内容</div>
+            <div class="dialogue-options" id="dialogue-options">
+              <!-- 由JS动态生成 -->
+            </div>
+          </div>
+
+          <!-- 调查面板 -->
+          <div class="investigation-panel panel" id="investigation-panel" style="display: none;">
+            <h3 class="panel-title">调查结果</h3>
+            <div id="clue-list">
+              <!-- 由JS动态生成 -->
+            </div>
+          </div>
+
+          <!-- 推理面板 -->
+          <div class="deduction-panel panel" id="deduction-panel" style="display: none;">
+            <h3 class="panel-title">推理指认</h3>
+            <p style="color: #aaa; margin-bottom: 15px;">根据收集的线索，指认你认为的凶手</p>
+            <div class="suspect-list" id="suspect-list">
+              <!-- 由JS动态生成 -->
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+              <button class="btn btn-danger" onclick="accuseSuspect()">确认指认</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="scene-sidebar">
+          <!-- 背包 -->
+          <div class="panel inventory-panel">
+            <h3 class="panel-title" style="font-size: 16px; margin-bottom: 15px;">物品栏</h3>
+            <div class="inventory-grid" id="inventory-grid">
+              <!-- 由JS动态生成 -->
+            </div>
+          </div>
+
+          <!-- 线索栏 -->
+          <div class="panel" style="margin-top: 15px;">
+            <h3 class="panel-title" style="font-size: 16px; margin-bottom: 15px;">已收集线索</h3>
+            <div id="collected-clues" style="font-size: 13px; color: #aaa;">
+              暂无线索
+            </div>
+          </div>
+
+          <!-- 游戏日志 -->
+          <div class="panel" style="margin-top: 15px;">
+            <h3 class="panel-title" style="font-size: 16px; margin-bottom: 15px;">游戏日志</h3>
+            <div class="game-log" id="game-log">
+              <!-- 由JS动态生成 -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 结局页面 -->
+    <div id="page-ending" class="page">
+      <div class="panel ending-screen" id="ending-screen">
+        <h1 class="ending-title" id="ending-title">案件结束</h1>
+        <div class="ending-text" id="ending-text">结局描述</div>
+        <div class="ending-stats" id="ending-stats">
+          <!-- 由JS动态生成 -->
+        </div>
+        <div style="margin-top: 30px;">
+          <button class="btn btn-primary" onclick="returnToCases()">返回案件列表</button>
+          <button class="btn btn-secondary" onclick="startNewGame()">开始新游戏</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 存档/读档模态框 -->
+  <div class="modal" id="modal-save-load">
+    <div class="modal-content">
+      <h2 class="modal-title">存档/读档</h2>
+      <div class="save-load-panel" id="save-load-panel">
+        <!-- 由JS动态生成 -->
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-save-load')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 设置模态框 -->
+  <div class="modal" id="modal-settings">
+    <div class="modal-content">
+      <h2 class="modal-title">游戏设置</h2>
+      <div style="padding: 20px 0;">
+        <p style="margin-bottom: 15px;">
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <input type="checkbox" id="setting-sound" checked> 开启音效
+          </label>
+        </p>
+        <p style="margin-bottom: 15px;">
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <input type="checkbox" id="setting-autosave" checked> 自动存档
+          </label>
+        </p>
+        <p style="margin-bottom: 15px;">
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <input type="checkbox" id="setting-log" checked> 显示游戏日志
+          </label>
+        </p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-settings')">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 结局确认模态框 -->
+  <div class="modal" id="modal-confirm">
+    <div class="modal-content">
+      <h2 class="modal-title" id="confirm-title">确认</h2>
+      <p id="confirm-text" style="text-align: center; margin: 20px 0; line-height: 1.6;"></p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" onclick="closeModal('modal-confirm')">取消</button>
+        <button class="btn btn-primary" id="confirm-btn" onclick="confirmAction()">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 游戏数据
+    let gameData = null;
+    let gameState = {
+      currentPage: 'page-start',
+      character: null,
+      currentCase: null,
+      currentScene: null,
+      inventory: [],
+      clues: [],
+      relationships: {},
+      flags: {},
+      log: [],
+      accused: null
+    };
+
+    // 加载游戏数据
+    async function loadGameData() {
+      try {
+        const response = await fetch('game_data.json');
+        gameData = await response.json();
+        console.log('游戏数据加载完成');
+      } catch (error) {
+        console.error('加载游戏数据失败:', error);
+      }
+    }
+
+    // 显示页面
+    function showPage(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(pageId).classList.add('active');
+      gameState.currentPage = pageId;
+    }
+
+    // 开始新游戏
+    function startNewGame() {
+      showPage('page-character');
+      renderTemplates();
+    }
+
+    // 渲染角色模板
+    function renderTemplates() {
+      const grid = document.getElementById('template-grid');
+      grid.innerHTML = '';
+
+      gameData.player_templates.forEach(template => {
+        const card = document.createElement('div');
+        card.className = 'template-card';
+        card.dataset.id = template.id;
+        card.onclick = () => selectTemplate(template.id);
+
+        card.innerHTML = `
+          <div class="template-name">${template.name}</div>
+          <div class="template-desc">${template.description}</div>
+          <div class="template-stats">
+            <div class="stat-item">智力: <span class="stat-value">${template.stats.intelligence}</span></div>
+            <div class="stat-item">魅力: <span class="stat-value">${template.stats.charisma}</span></div>
+            <div class="stat-item">敏捷: <span class="stat-value">${template.stats.agility}</span></div>
+            <div class="stat-item">感知: <span class="stat-value">${template.stats.perception}</span></div>
+          </div>
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    // 选择角色模板
+    function selectTemplate(templateId) {
+      document.querySelectorAll('.template-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      document.querySelector(`.template-card[data-id="${templateId}"]`).classList.add('selected');
+
+      const template = gameData.player_templates.find(t => t.id === templateId);
+      gameState.character = JSON.parse(JSON.stringify(template));
+
+      // 显示角色预览
+      const preview = document.getElementById('character-preview');
+      preview.innerHTML = `
+        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 250px;">
+            <h3 style="color: #ffd700; margin-bottom: 15px;">${template.name}</h3>
+            <p style="margin-bottom: 15px; line-height: 1.6;">${template.background}</p>
+            <p style="font-size: 13px; color: #aaa;">技能：${template.skills.join('、')}</p>
+          </div>
+          <div style="flex: 1; min-width: 200px;">
+            <h4 style="color: #ffd700; margin-bottom: 15px;">属性</h4>
+            <div class="stat-bar">
+              <div class="stat-label"><span>智力</span><span>${template.stats.intelligence}</span></div>
+              <div class="stat-progress"><div class="stat-fill" style="width: ${template.stats.intelligence * 5}%"></div></div>
+            </div>
+            <div class="stat-bar">
+              <div class="stat-label"><span>魅力</span><span>${template.stats.charisma}</span></div>
+              <div class="stat-progress"><div class="stat-fill" style="width: ${template.stats.charisma * 5}%"></div></div>
+            </div>
+            <div class="stat-bar">
+              <div class="stat-label"><span>敏捷</span><span>${template.stats.agility}</span></div>
+              <div class="stat-progress"><div class="stat-fill" style="width: ${template.stats.agility * 5}%"></div></div>
+            </div>
+            <div class="stat-bar">
+              <div class="stat-label"><span>感知</span><span>${template.stats.perception}</span></div>
+              <div class="stat-progress"><div class="stat-fill" style="width: ${template.stats.perception * 5}%"></div></div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('btn-confirm-char').disabled = false;
+    }
+
+    // 确认角色
+    function confirmCharacter() {
+      if (!gameState.character) return;
+      showPage('page-cases');
+      renderCases();
+    }
+
+    // 渲染案件列表
+    function renderCases() {
+      const list = document.getElementById('case-list');
+      list.innerHTML = '';
+
+      gameData.cases.forEach(caseData => {
+        const card = document.createElement('div');
+        card.className = 'case-card';
+        card.onclick = () => startCase(caseData.id);
+
+        card.innerHTML = `
+          <div class="case-name">${caseData.name}</div>
+          <div class="case-meta">${caseData.date} | ${caseData.location}</div>
+          <div class="case-desc">${caseData.description}</div>
+          <div class="difficulty difficulty-${caseData.difficulty}">难度: ${'★'.repeat(caseData.difficulty)}</div>
+        `;
+
+        list.appendChild(card);
+      });
+    }
+
+    // 开始案件
+    function startCase(caseId) {
+      gameState.currentCase = gameData.cases.find(c => c.id === caseId);
+      gameState.inventory = [];
+      gameState.clues = [];
+      gameState.accused = null;
+      gameState.currentScene = gameState.currentCase.scenes[0];
+
+      showPage('page-game');
+      updateCharacterPanel();
+      updateInventory();
+      renderScene();
+      addLog(`开始调查「${gameState.currentCase.name}」`);
+    }
+
+    // 更新角色面板
+    function updateCharacterPanel() {
+      const char = gameState.character;
+      document.getElementById('char-name').textContent = char.name;
+      document.getElementById('char-desc').textContent = char.description;
+      document.getElementById('char-skills').textContent = '技能：' + char.skills.join('、');
+
+      document.getElementById('stat-int').textContent = char.stats.intelligence;
+      document.getElementById('stat-int-bar').style.width = (char.stats.intelligence * 5) + '%';
+      document.getElementById('stat-cha').textContent = char.stats.charisma;
+      document.getElementById('stat-cha-bar').style.width = (char.stats.charisma * 5) + '%';
+      document.getElementById('stat-agi').textContent = char.stats.agility;
+      document.getElementById('stat-agi-bar').style.width = (char.stats.agility * 5) + '%';
+      document.getElementById('stat-per').textContent = char.stats.perception;
+      document.getElementById('stat-per-bar').style.width = (char.stats.perception * 5) + '%';
+    }
+
+    // 渲染场景
+    function renderScene() {
+      const sceneData = getSceneData(gameState.currentScene);
+      if (!sceneData) return;
+
+      document.getElementById('scene-desc').innerHTML = `
+        <h3 style="color: #ffd700; margin-bottom: 10px;">${sceneData.name}</h3>
+        <p>${sceneData.description}</p>
+      `;
+
+      // 渲染场景操作
+      const actions = document.getElementById('scene-actions');
+      actions.innerHTML = '';
+
+      // 对话按钮
+      if (sceneData.npcs && sceneData.npcs.length > 0) {
+        sceneData.npcs.forEach(npc => {
+          const btn = document.createElement('button');
+          btn.className = 'btn btn-secondary';
+          btn.textContent = `与${npc}对话`;
+          btn.onclick = () => startDialogue(npc);
+          actions.appendChild(btn);
+        });
+      }
+
+      // 调查按钮
+      const investigateBtn = document.createElement('button');
+      investigateBtn.className = 'btn btn-primary';
+      investigateBtn.textContent = '调查场景';
+      investigateBtn.onclick = () => investigateScene();
+      actions.appendChild(investigateBtn);
+
+      // 移动按钮
+      if (sceneData.connections) {
+        sceneData.connections.forEach(sceneId => {
+          const targetScene = getSceneData(sceneId);
+          if (targetScene) {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-secondary';
+            btn.textContent = `前往${targetScene.name}`;
+            btn.onclick = () => moveToScene(sceneId);
+            actions.appendChild(btn);
+          }
+        });
+      }
+
+      // 推理按钮（当收集足够线索后显示）
+      if (gameState.clues.length >= 2) {
+        const deductBtn = document.createElement('button');
+        deductBtn.className = 'btn btn-danger';
+        deductBtn.textContent = '进行推理';
+        deductBtn.onclick = () => showDeduction();
+        actions.appendChild(deductBtn);
+      }
+
+      // 隐藏对话框和调查面板
+      document.getElementById('dialogue-box').style.display = 'none';
+      document.getElementById('investigation-panel').style.display = 'none';
+      document.getElementById('deduction-panel').style.display = 'none';
+    }
+
+    // 获取场景数据
+    function getSceneData(sceneId) {
+      // 根据场景ID返回对应的场景数据
+      // 这里需要根据实际情况从gameData中获取
+      const scenes = {
+        'scene01_hall': {
+          name: '丹水山庄大厅',
+          description: '宽敞的大厅中央摆放着一张红木圆桌，桌上还残留着茶杯。墙上的字画微微晃动，似乎有人刚刚匆忙离开。空气中弥漫着一股若有若无的异香。',
+          npcs: ['赵洛意', '虞君鸿'],
+          connections: ['scene01_garden', 'scene01_study']
+        },
+        'scene01_garden': {
+          name: '丹水山庄后院',
+          description: '后院的花草繁茂，但角落里似乎有翻动过的痕迹。月光下，一块石板微微翘起，下面隐约有东西。',
+          npcs: [],
+          connections: ['scene01_hall']
+        },
+        'scene01_study': {
+          name: '丹水山庄书房',
+          description: '书房里堆满了古籍，书桌上散落着一些信件。墙角的书架似乎被人移动过，露出了一道暗门。',
+          npcs: [],
+          connections: ['scene01_hall']
+        },
+        'scene02_island': {
+          name: '海岛悬崖',
+          description: '悬崖边风声呼啸，脚下是万丈深渊。崖边的草丛中似乎有什么东西在闪闪发光。',
+          npcs: [],
+          connections: ['scene02_hall', 'scene02_dock']
+        },
+        'scene02_hall': {
+          name: '海岛别墅大厅',
+          description: '别墅的大厅装饰豪华，壁炉里的火焰还在燃烧。几位参与者正围坐在一起，神色各异。',
+          npcs: ['罗亨理', '安季奚'],
+          connections: ['scene02_island', 'scene02_dock']
+        },
+        'scene02_dock': {
+          name: '海岛码头',
+          description: '码头上停着几艘小船，海风带着咸腥味。一个渔夫正在整理渔网，不时朝别墅方向张望。',
+          npcs: [],
+          connections: ['scene02_hall']
+        },
+        'scene03_mengyuan': {
+          name: '孟园正厅',
+          description: '孟园的正厅布置得古色古香，墙上挂着名家字画。茶几上摆放着精致的茶具，空气中飘着淡淡的茶香。',
+          npcs: ['孟如静', '陈均梦'],
+          connections: ['scene03_garden', 'scene03_room']
+        },
+        'scene03_garden': {
+          name: '孟园花园',
+          description: '花园里种满了各种奇花异草，假山流水相映成趣。角落里有一棵古老的槐树，树下似乎有东西。',
+          npcs: [],
+          connections: ['scene03_mengyuan']
+        },
+        'scene03_room': {
+          name: '孟园客房',
+          description: '客房里陈设简单，床铺整洁。书桌上放着一本未读完的书，旁边有一张便条。',
+          npcs: [],
+          connections: ['scene03_mengyuan']
+        }
+      };
+
+      return scenes[sceneId] || null;
+    }
+
+    // 开始对话
+    function startDialogue(npcName) {
+      const dialogue = gameData.dialogues.find(d => d.speaker === npcName);
+      if (!dialogue) {
+        addLog(`与${npcName}交谈，但没有找到相关对话。`);
+        return;
+      }
+
+      const dialogueBox = document.getElementById('dialogue-box');
+      dialogueBox.style.display = 'block';
+
+      document.getElementById('dialogue-speaker').textContent = dialogue.speaker;
+      document.getElementById('dialogue-text').textContent = dialogue.options[0].response;
+
+      const optionsContainer = document.getElementById('dialogue-options');
+      optionsContainer.innerHTML = '';
+
+      dialogue.options.forEach((option, index) => {
+        const optionDiv = document.createElement('div');
+        optionDiv.className = 'dialogue-option';
+        optionDiv.textContent = option.text;
+        optionDiv.onclick = () => handleDialogueOption(npcName, index);
+        optionsContainer.appendChild(optionDiv);
+      });
+
+      addLog(`与${npcName}开始对话`);
+    }
+
+    // 处理对话选项
+    function handleDialogueOption(npcName, optionIndex) {
+      const dialogue = gameData.dialogues.find(d => d.speaker === npcName);
+      if (!dialogue || !dialogue.options[optionIndex]) return;
+
+      const option = dialogue.options[optionIndex];
+
+      // 显示回复
+      document.getElementById('dialogue-text').textContent = option.response;
+
+      // 更新选项
+      const optionsContainer = document.getElementById('dialogue-options');
+      optionsContainer.innerHTML = '';
+
+      // 添加继续选项
+      const continueOption = document.createElement('div');
+      continueOption.className = 'dialogue-option';
+      continueOption.textContent = '继续对话...';
+      continueOption.onclick = () => {
+        document.getElementById('dialogue-box').style.display = 'none';
+        addLog(`${npcName}说完了话`);
+      };
+      optionsContainer.appendChild(continueOption);
+
+      // 处理效果
+      if (option.effect) {
+        if (option.effect.relationship) {
+          if (!gameState.relationships[option.effect.relationship]) {
+            gameState.relationships[option.effect.relationship] = 0;
+          }
+          gameState.relationships[option.effect.relationship] += option.effect.change;
+          addLog(`与${option.effect.relationship}的关系变化`);
+        }
+        if (option.effect.item) {
+          gameState.inventory.push(option.effect.item);
+          updateInventory();
+          addLog(`获得了${option.effect.item}`);
+        }
+        if (option.effect.clue) {
+          addClue(option.effect.clue);
+        }
+      }
+    }
+
+    // 调查场景
+    function investigateScene() {
+      const clues = gameState.currentCase.clues.filter(c =>
+        c.location === gameState.currentScene
+      );
+
+      if (clues.length === 0) {
+        addLog('没有发现新的线索');
+        document.getElementById('investigation-panel').style.display = 'block';
+        document.getElementById('clue-list').innerHTML = '<p style="color: #888;">没有发现线索</p>';
+        return;
+      }
+
+      document.getElementById('investigation-panel').style.display = 'block';
+      const clueList = document.getElementById('clue-list');
+      clueList.innerHTML = '';
+
+      let foundAny = false;
+      clues.forEach(clue => {
+        if (gameState.clues.find(c => c.id === clue.id)) return; // 已收集
+
+        // 检查是否需要技能判定
+        let canFind = true;
+        if (clue.required_skill) {
+          const skillValue = getSkillValue(clue.required_skill);
+          const roll = Math.floor(Math.random() * 20) + 1;
+          canFind = roll <= skillValue || roll === 20; // 20为大成功
+          if (!canFind) {
+            addLog(`调查${clue.name}失败（需要${clue.required_skill}技能）`);
+          }
+        }
+
+        if (canFind) {
+          foundAny = true;
+          const clueDiv = document.createElement('div');
+          clueDiv.className = 'clue-item found';
+          clueDiv.innerHTML = `
+            <div class="clue-name">${clue.name}</div>
+            <div class="clue-desc">${clue.description}</div>
+            <div style="font-size: 12px; color: #27ae60; margin-top: 5px;">${clue.hint || ''}</div>
+          `;
+          clueDiv.onclick = () => addClue(clue);
+          clueList.appendChild(clueDiv);
+          addLog(`发现了线索：${clue.name}`);
+        }
+      });
+
+      if (!foundAny) {
+        clueList.innerHTML = '<p style="color: #888;">没有发现新线索</p>';
+      }
+    }
+
+    // 获取技能值
+    function getSkillValue(skillName) {
+      if (!gameState.character) return 10;
+
+      // 根据技能名称获取对应的属性值
+      const skillMap = {
+        '调查': gameState.character.stats.intelligence,
+        '推理': gameState.character.stats.intelligence,
+        '观察': gameState.character.stats.perception,
+        '说服': gameState.character.stats.charisma,
+        '医疗': gameState.character.stats.intelligence,
+        '采访': gameState.character.stats.charisma,
+        '权谋': gameState.character.stats.charisma,
+        '战斗': gameState.character.stats.agility,
+        '毒理分析': gameState.character.stats.intelligence
+      };
+
+      return skillMap[skillName] || 10;
+    }
+
+    // 添加线索
+    function addClue(clue) {
+      if (gameState.clues.find(c => c.id === clue.id)) return;
+
+      gameState.clues.push(clue);
+      updateCollectedClues();
+      addLog(`收集了线索：${clue.name}`);
+
+      // 检查是否收集足够线索可以推理
+      if (gameState.clues.length >= 2) {
+        addLog('已收集足够线索，可以进行推理');
+        renderScene(); // 刷新场景以显示推理按钮
+      }
+    }
+
+    // 更新已收集线索显示
+    function updateCollectedClues() {
+      const container = document.getElementById('collected-clues');
+      if (gameState.clues.length === 0) {
+        container.innerHTML = '暂无线索';
+        return;
+      }
+
+      container.innerHTML = gameState.clues.map(clue => `
+        <div style="margin-bottom: 10px; padding: 8px; background: rgba(255,215,0,0.1); border-radius: 4px;">
+          <div style="color: #ffd700; font-weight: bold;">${clue.name}</div>
+          <div style="font-size: 12px;">${clue.description}</div>
+        </div>
+      `).join('');
+    }
+
+    // 移动到场景
+    function moveToScene(sceneId) {
+      gameState.currentScene = sceneId;
+      renderScene();
+      const sceneData = getSceneData(sceneId);
+      addLog(`移动到${sceneData ? sceneData.name : '新场景'}`);
+    }
+
+    // 显示推理界面
+    function showDeduction() {
+      document.getElementById('dialogue-box').style.display = 'none';
+      document.getElementById('investigation-panel').style.display = 'none';
+      document.getElementById('deduction-panel').style.display = 'block';
+
+      const suspectList = document.getElementById('suspect-list');
+      suspectList.innerHTML = '';
+
+      gameState.currentCase.suspects.forEach(suspect => {
+        const card = document.createElement('div');
+        card.className = 'suspect-card';
+        card.dataset.name = suspect.name;
+        card.onclick = () => selectSuspect(suspect.name);
+
+        card.innerHTML = `
+          <div class="suspect-name">${suspect.name}</div>
+          <div class="suspect-info">${suspect.description}</div>
+          <div class="suspect-info">动机：${suspect.motive}</div>
+          <div class="suspect-info">不在场证明：${suspect.alibi}</div>
+        `;
+
+        suspectList.appendChild(card);
+      });
+
+      addLog('进入推理阶段');
+    }
+
+    // 选择嫌疑人
+    function selectSuspect(name) {
+      document.querySelectorAll('.suspect-card').forEach(card => {
+        card.classList.remove('accused');
+      });
+      document.querySelector(`.suspect-card[data-name="${name}"]`).classList.add('accused');
+      gameState.accused = name;
+    }
+
+    // 指认凶手
+    function accuseSuspect() {
+      if (!gameState.accused) {
+        alert('请先选择一个嫌疑人');
+        return;
+      }
+
+      showConfirmModal(
+        '确认指认',
+        `你确定要指认 ${gameState.accused} 为凶手吗？`,
+        () => {
+          const realKiller = gameState.currentCase.suspects.find(s => s.is_guilty);
+          if (gameState.accused === realKiller.name) {
+            showEnding(true);
+          } else {
+            showEnding(false);
+          }
+        }
+      );
+    }
+
+    // 显示结局
+    function showEnding(solved) {
+      showPage('page-ending');
+
+      const title = document.getElementById('ending-title');
+      const text = document.getElementById('ending-text');
+      const stats = document.getElementById('ending-stats');
+
+      if (solved) {
+        title.textContent = '案件破解！';
+        text.innerHTML = `
+          <p>恭喜你成功破解了「${gameState.currentCase.name}」！</p>
+          <p style="margin-top: 15px;">${gameState.currentCase.solution}</p>
+        `;
+        addLog('成功破案！');
+      } else {
+        title.textContent = '指认错误';
+        text.innerHTML = `
+          <p>你指认的${gameState.accused}并非真凶。</p>
+          <p style="margin-top: 15px;">真相是：${gameState.currentCase.solution}</p>
+          <p style="margin-top: 10px;">你还需要更多的调查和推理。</p>
+        `;
+        addLog('指认错误');
+      }
+
+      stats.innerHTML = `
+        <div class="stat-line">收集线索：${gameState.clues.length}</div>
+        <div class="stat-line">对话次数：${gameState.log.length}</div>
+        <div class="stat-line">案件难度：${'★'.repeat(gameState.currentCase.difficulty)}</div>
+      `;
+    }
+
+    // 返回案件列表
+    function returnToCases() {
+      showPage('page-cases');
+      renderCases();
+    }
+
+    // 更新物品栏
+    function updateInventory() {
+      const grid = document.getElementById('inventory-grid');
+      grid.innerHTML = '';
+
+      // 显示已有物品
+      gameState.inventory.forEach(item => {
+        const slot = document.createElement('div');
+        slot.className = 'inventory-slot';
+        slot.innerHTML = `
+          <div class="inventory-icon">📦</div>
+          <div class="inventory-name">${item}</div>
+        `;
+        grid.appendChild(slot);
+      });
+
+      // 显示空槽位
+      const emptySlots = Math.max(0, 8 - gameState.inventory.length);
+      for (let i = 0; i < emptySlots; i++) {
+        const slot = document.createElement('div');
+        slot.className = 'inventory-slot empty';
+        slot.innerHTML = '<div class="inventory-icon">-</div>';
+        grid.appendChild(slot);
+      }
+    }
+
+    // 添加日志
+    function addLog(text) {
+      const time = new Date().toLocaleTimeString();
+      gameState.log.push({ time, text });
+
+      const logContainer = document.getElementById('game-log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `
+        <span class="log-time">${time}</span>
+        <span class="log-text">${text}</span>
+      `;
+      logContainer.appendChild(entry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    // 存档/读档
+    function showSaveLoadModal() {
+      const panel = document.getElementById('save-load-panel');
+      panel.innerHTML = '';
+
+      // 读取存档
+      const saves = JSON.parse(localStorage.getItem('hmjq1914_saves') || '{}');
+
+      for (let i = 1; i <= 3; i++) {
+        const save = saves[`slot${i}`];
+        const slot = document.createElement('div');
+        slot.className = 'save-slot' + (save ? '' : ' empty');
+
+        if (save) {
+          slot.innerHTML = `
+            <div class="save-slot-title">存档 ${i}</div>
+            <div class="save-slot-info">${save.character.name} | ${save.currentCase.name}</div>
+            <div class="save-slot-info">${save.timestamp}</div>
+            <button class="btn btn-secondary" style="margin-top: 10px;" onclick="loadGame(${i})">读取</button>
+            <button class="btn btn-danger" style="margin-top: 5px;" onclick="deleteSave(${i})">删除</button>
+          `;
+        } else {
+          slot.innerHTML = `
+            <div class="save-slot-title">存档 ${i}</div>
+            <div class="save-slot-info">空</div>
+            <button class="btn btn-primary" style="margin-top: 10px;" onclick="saveGame(${i})">保存</button>
+          `;
+        }
+
+        panel.appendChild(slot);
+      }
+
+      document.getElementById('modal-save-load').classList.add('active');
+    }
+
+    // 保存游戏
+    function saveGame(slot) {
+      if (!gameState.character || !gameState.currentCase) {
+        alert('当前没有可保存的游戏进度');
+        return;
+      }
+
+      const saves = JSON.parse(localStorage.getItem('hmjq1914_saves') || '{}');
+      saves[`slot${slot}`] = {
+        character: gameState.character,
+        currentCase: gameState.currentCase,
+        currentScene: gameState.currentScene,
+        inventory: gameState.inventory,
+        clues: gameState.clues,
+        relationships: gameState.relationships,
+        log: gameState.log,
+        timestamp: new Date().toLocaleString()
+      };
+
+      localStorage.setItem('hmjq1914_saves', JSON.stringify(saves));
+      alert('游戏已保存');
+      showSaveLoadModal();
+    }
+
+    // 读取游戏
+    function loadGame(slot) {
+      const saves = JSON.parse(localStorage.getItem('hmjq1914_saves') || '{}');
+      const save = saves[`slot${slot}`];
+
+      if (!save) {
+        alert('没有找到存档');
+        return;
+      }
+
+      gameState.character = save.character;
+      gameState.currentCase = save.currentCase;
+      gameState.currentScene = save.currentScene;
+      gameState.inventory = save.inventory || [];
+      gameState.clues = save.clues || [];
+      gameState.relationships = save.relationships || {};
+      gameState.log = save.log || [];
+
+      showPage('page-game');
+      updateCharacterPanel();
+      updateInventory();
+      updateCollectedClues();
+      renderScene();
+
+      // 恢复日志
+      const logContainer = document.getElementById('game-log');
+      logContainer.innerHTML = '';
+      gameState.log.forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.innerHTML = `
+          <span class="log-time">${entry.time}</span>
+          <span class="log-text">${entry.text}</span>
+        `;
+        logContainer.appendChild(div);
+      });
+
+      closeModal('modal-save-load');
+      addLog('游戏已读取');
+    }
+
+    // 删除存档
+    function deleteSave(slot) {
+      if (!confirm('确定要删除这个存档吗？')) return;
+
+      const saves = JSON.parse(localStorage.getItem('hmjq1914_saves') || '{}');
+      delete saves[`slot${slot}`];
+      localStorage.setItem('hmjq1914_saves', JSON.stringify(saves));
+      showSaveLoadModal();
+    }
+
+    // 显示存档模态框
+    function showLoadModal() {
+      showSaveLoadModal();
+    }
+
+    // 显示设置模态框
+    function showSettingsModal() {
+      document.getElementById('modal-settings').classList.add('active');
+    }
+
+    // 关闭模态框
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.remove('active');
+    }
+
+    // 显示确认模态框
+    let confirmCallback = null;
+    function showConfirmModal(title, text, callback) {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-text').textContent = text;
+      confirmCallback = callback;
+      document.getElementById('modal-confirm').classList.add('active');
+    }
+
+    // 确认操作
+    function confirmAction() {
+      if (confirmCallback) {
+        confirmCallback();
+        confirmCallback = null;
+      }
+      closeModal('modal-confirm');
+    }
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadGameData();
+      console.log('游戏初始化完成');
+    });
+  </script>
+</body>
+</html>
